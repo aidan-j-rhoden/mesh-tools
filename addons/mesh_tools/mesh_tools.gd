@@ -2,6 +2,12 @@ class_name MeshTools
 
 
 const Islands = preload("res://addons/mesh_tools/scripts/island_separate.gd")
+
+## CleanUp has the methods:
+## [br]rebuild_csg_node
+## [br]    Bakes any CSG node and all it's children into one new [CSGMesh3D].  The children are then removed after.
+## [br]merge_by_distance
+## [br]    Takes a mesh and performs a merge by distance operation on it, useful after a CSG operation.
 const CleanUp = preload("res://addons/mesh_tools/scripts/mesh_cleanup.gd")
 
 ## BodyProblems has the methods:
