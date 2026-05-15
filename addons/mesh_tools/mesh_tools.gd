@@ -1,6 +1,8 @@
 class_name MeshTools
 
 
+## Islands has the methods:
+## separate_mesh_islands
 const Islands = preload("res://addons/mesh_tools/scripts/island_separate.gd")
 
 ## CleanUp has the methods:

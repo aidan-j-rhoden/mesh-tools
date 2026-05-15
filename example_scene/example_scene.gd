@@ -25,7 +25,7 @@ func the_test() -> void:
 		add_child(mi)
 		mi.global_position = $CSGBox3D.global_position
 		MeshTools.BodyProblems.set_center_of_mass(mi, true)
-		#print(MeshTools.BodyProblems.calculate_mesh_volume(m))
+		print(MeshTools.Islands.calculate_mesh_volume(m))
 	print("forth one finished")
 	$CSGBox3D.queue_free()
 

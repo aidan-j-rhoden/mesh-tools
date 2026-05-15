@@ -88,9 +88,6 @@ static func create_csg_body_from_mesh(
 	return csg
 
 
-
-
-
 ## This sets the center of mass of the [RigidBody3D], by using the AABB bounding box, or calculating it by volume.
 static func set_center_of_mass(rigid_body: RigidBody3D, fancy: bool):
 	# Get the body's mesh (sloppy but good enough)
@@ -131,68 +128,6 @@ static func _get_mesh_centroid(mesh: Mesh, volumetric: bool = false):
 		return sum / faces.size()
 	else:
 		return _get_mesh_volumetric_center(mesh)
-
-
-## Calculates the volume of a closed triangular mesh.
-## Returns the absolute volume (in mesh units³).
-## [br][br]
-## Assumptions:
-## [br]    The mesh is closed and manifold (watertight).
-## [br]    Triangles have consistent winding order (clockwise or counterclockwise).
-## [br]    Surfaces use [Mesh].PRIMITIVE_TRIANGLES.
-## [br]    Non-closed or self-intersecting meshes may give inaccurate results.
-static func calculate_mesh_volume(mesh: Mesh) -> float:
-	if mesh == null:
-		return 0.0
-
-	var total_volume: float = 0.0
-
-	for surface_idx in mesh.get_surface_count():
-		var primitive = mesh.surface_get_primitive_type(surface_idx)
-		if primitive != Mesh.PRIMITIVE_TRIANGLES:
-			# Only triangle lists are supported for simplicity
-			continue
-
-		var arrays := mesh.surface_get_arrays(surface_idx)
-		if arrays.is_empty():
-			continue
-
-		var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
-		if vertices.is_empty():
-			continue
-
-		var indices: PackedInt32Array = PackedInt32Array()
-		if arrays[Mesh.ARRAY_INDEX] != null:
-			indices = arrays[Mesh.ARRAY_INDEX]
-
-		if indices.is_empty():
-			# Non-indexed mesh (vertices listed in groups of 3)
-			for i in range(0, vertices.size() - 2, 3):
-				var v0 := vertices[i]
-				var v1 := vertices[i + 1]
-				var v2 := vertices[i + 2]
-				total_volume += _signed_tetra_volume(v0, v1, v2)
-		else:
-			# Indexed mesh
-			for i in range(0, indices.size() - 2, 3):
-				var idx0 := indices[i]
-				var idx1 := indices[i + 1]
-				var idx2 := indices[i + 2]
-
-				if idx0 >= vertices.size() or idx1 >= vertices.size() or idx2 >= vertices.size():
-					continue
-
-				var v0 := vertices[idx0]
-				var v1 := vertices[idx1]
-				var v2 := vertices[idx2]
-				total_volume += _signed_tetra_volume(v0, v1, v2)
-
-	return abs(total_volume)
-
-
-## Helper: signed volume of a tetrahedron formed by origin + triangle
-static func _signed_tetra_volume(v0: Vector3, v1: Vector3, v2: Vector3) -> float:
-	return v0.dot(v1.cross(v2)) / 6.0
 
 
 ## Helper: Returns the volumetric center (center of mass) of a [Mesh] in its local space.
