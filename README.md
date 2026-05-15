@@ -19,7 +19,10 @@ This is a bunch of helper functions that I've created for one of my projects.
 - A function that is almost mandatory to run on RigidBody3Ds generated from create_rigid_body_from_mesh 
 
 ## Islands:
-- yaada
+### `calculate_mesh_volume`
+- Returns the given mesh's volume, in the cubed unit of said mesh. (typically cubic meters) It is assumed the mesh is watertight.
+### `separate_mesh_islands`
+- Takes a mesh, and returns an array of all the floating mesh islands separated out of it.
 
 There is an example scene and script that uses just about every function in the toolset.
 <br>**Warning**: The demo scene is very intensive, and an extreme edge case way beyond realistic applications.
