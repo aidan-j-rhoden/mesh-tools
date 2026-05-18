@@ -24,7 +24,7 @@ This is a bunch of helper functions that I've created for one of my projects.
 ### `separate_mesh_islands`
 - Takes a mesh, and returns an array of all the floating mesh islands separated out of it.
 
-There is an example scene and script that uses just about every function in the toolset.
+There is an example scene and script that uses just about every function in the toolset, which you can access by downloading it from the Github repo.
 <br>**Warning**: The demo scene is very intensive, and an extreme edge case way beyond realistic applications.
 
 Hopefully you will find this helpful in some way or another.
