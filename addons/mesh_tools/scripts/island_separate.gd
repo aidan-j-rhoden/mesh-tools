@@ -18,7 +18,7 @@ static func calculate_mesh_volume(mesh: Mesh) -> float:
 			# Only triangle lists are supported for simplicity
 			continue
 
-		var arrays := mesh.surface_get_arrays(surface_idx)
+		var arrays: Array = mesh.surface_get_arrays(surface_idx)
 		if arrays.is_empty():
 			continue
 
@@ -33,23 +33,23 @@ static func calculate_mesh_volume(mesh: Mesh) -> float:
 		if indices.is_empty():
 			# Non-indexed mesh (vertices listed in groups of 3)
 			for i in range(0, vertices.size() - 2, 3):
-				var v0 := vertices[i]
-				var v1 := vertices[i + 1]
-				var v2 := vertices[i + 2]
+				var v0: Vector3 = vertices[i]
+				var v1: Vector3 = vertices[i + 1]
+				var v2: Vector3 = vertices[i + 2]
 				total_volume += _signed_tetra_volume(v0, v1, v2)
 		else:
 			# Indexed mesh
 			for i in range(0, indices.size() - 2, 3):
-				var idx0 := indices[i]
-				var idx1 := indices[i + 1]
-				var idx2 := indices[i + 2]
+				var idx0: int = indices[i]
+				var idx1: int = indices[i + 1]
+				var idx2: int = indices[i + 2]
 
 				if idx0 >= vertices.size() or idx1 >= vertices.size() or idx2 >= vertices.size():
 					continue
 
-				var v0 := vertices[idx0]
-				var v1 := vertices[idx1]
-				var v2 := vertices[idx2]
+				var v0: Vector3 = vertices[idx0]
+				var v1: Vector3 = vertices[idx1]
+				var v2: Vector3 = vertices[idx2]
 				total_volume += _signed_tetra_volume(v0, v1, v2)
 
 	return abs(total_volume)
@@ -74,8 +74,8 @@ static func separate_mesh_islands(mesh: Mesh, merge_overlapping: bool = false) -
 		push_warning("separate_mesh_islands currently only supports ArrayMesh. Returning original mesh.")
 		return [mesh]
 
-	var array_mesh := mesh as ArrayMesh
-	var surface_count := array_mesh.get_surface_count()
+	var array_mesh = mesh as ArrayMesh
+	var surface_count: int = array_mesh.get_surface_count()
 	if surface_count == 0:
 		return []
 
@@ -85,7 +85,7 @@ static func separate_mesh_islands(mesh: Mesh, merge_overlapping: bool = false) -
 	var surface_primitive_types: Array[int] = []
 	var surface_vertex_starts: Array[int] = []
 	var surface_vertex_counts: Array[int] = []
-	var global_vertex_count := 0
+	var global_vertex_count: int = 0
 
 	for s in range(surface_count):
 		surface_materials.append(array_mesh.surface_get_material(s))
@@ -93,7 +93,7 @@ static func separate_mesh_islands(mesh: Mesh, merge_overlapping: bool = false) -
 		surface_arrays_list.append(arrs)
 		surface_primitive_types.append(array_mesh.surface_get_primitive_type(s))
 
-		var vcount := 0
+		var vcount: int = 0
 		if arrs[Mesh.ARRAY_VERTEX] != null:
 			vcount = arrs[Mesh.ARRAY_VERTEX].size()
 		surface_vertex_counts.append(vcount)
@@ -104,8 +104,8 @@ static func separate_mesh_islands(mesh: Mesh, merge_overlapping: bool = false) -
 		return [mesh]
 
 	# --- Union-Find setup ---
-	var parent := PackedInt32Array()
-	var rank := PackedInt32Array()
+	var parent: PackedInt32Array = PackedInt32Array()
+	var rank: PackedInt32Array = PackedInt32Array()
 	parent.resize(global_vertex_count)
 	rank.resize(global_vertex_count)
 	for i in global_vertex_count:
@@ -134,13 +134,13 @@ static func separate_mesh_islands(mesh: Mesh, merge_overlapping: bool = false) -
 
 	# --- 1. Connect vertices via faces (within each surface) ---
 	for s in range(surface_count):
-		var start_id := surface_vertex_starts[s]
+		var start_id: int = surface_vertex_starts[s]
 		var arrs = surface_arrays_list[s]
-		var prim := surface_primitive_types[s]
+		var prim: int = surface_primitive_types[s]
 
 		if prim != Mesh.PRIMITIVE_TRIANGLES:
 			# Keep entire non-triangle surface as one unit
-			var vc := surface_vertex_counts[s]
+			var vc: int = surface_vertex_counts[s]
 			for j in range(1, vc):
 				union_sets.call(start_id, start_id + j)
 			continue
@@ -148,7 +148,7 @@ static func separate_mesh_islands(mesh: Mesh, merge_overlapping: bool = false) -
 		var indices = arrs[Mesh.ARRAY_INDEX]
 		if indices == null or indices.is_empty():
 			# Non-indexed triangles
-			var vc = arrs[Mesh.ARRAY_VERTEX].size() if arrs[Mesh.ARRAY_VERTEX] != null else 0
+			var vc: int = arrs[Mesh.ARRAY_VERTEX].size() if arrs[Mesh.ARRAY_VERTEX] != null else 0
 			for i in range(0, vc, 3):
 				if i + 2 < vc:
 					union_sets.call(start_id + i, start_id + i + 1)
@@ -158,17 +158,17 @@ static func separate_mesh_islands(mesh: Mesh, merge_overlapping: bool = false) -
 		# Indexed triangles
 		for i in range(0, indices.size(), 3):
 			if i + 2 < indices.size():
-				var gv0 = start_id + indices[i]
-				var gv1 = start_id + indices[i + 1]
-				var gv2 = start_id + indices[i + 2]
+				var gv0: int = start_id + indices[i]
+				var gv1: int = start_id + indices[i + 1]
+				var gv2: int = start_id + indices[i + 2]
 				union_sets.call(gv0, gv1)
 				union_sets.call(gv1, gv2)
 
 	# --- 2. Optional: connect by overlapping vertex positions (across surfaces) ---
 	if merge_overlapping:
-		var pos_to_verts := {}
+		var pos_to_verts: Dictionary = {}
 		for s in range(surface_count):
-			var start := surface_vertex_starts[s]
+			var start: int = surface_vertex_starts[s]
 			var verts: PackedVector3Array = surface_arrays_list[s][Mesh.ARRAY_VERTEX]
 			if verts == null:
 				continue
@@ -187,13 +187,13 @@ static func separate_mesh_islands(mesh: Mesh, merge_overlapping: bool = false) -
 					union_sets.call(first, vlist[k])
 
 	# --- 3. Collect faces per component ---
-	var comp_to_surf_tris := {}      # root -> {surf_idx: Array[Array[int]] }  (list of [v0,v1,v2])
-	var comp_to_full_surfs := {}     # root -> Array[int]  (list of surf indices for non-triangle surfaces)
+	var comp_to_surf_tris: Dictionary = {}      # root -> {surf_idx: Array[Array[int]] }  (list of [v0,v1,v2])
+	var comp_to_full_surfs: Dictionary = {}     # root -> Array[int]  (list of surf indices for non-triangle surfaces)
 
 	for s in range(surface_count):
-		var start := surface_vertex_starts[s]
+		var start: int = surface_vertex_starts[s]
 		var arrs = surface_arrays_list[s]
-		var prim := surface_primitive_types[s]
+		var prim: int = surface_primitive_types[s]
 
 		if prim != Mesh.PRIMITIVE_TRIANGLES:
 			if surface_vertex_counts[s] > 0:
@@ -204,8 +204,8 @@ static func separate_mesh_islands(mesh: Mesh, merge_overlapping: bool = false) -
 			continue
 
 		# Triangle surface
-		var indices = arrs[Mesh.ARRAY_INDEX]
-		var has_indices = indices != null and not indices.is_empty()
+		var indices: Array = arrs[Mesh.ARRAY_INDEX]
+		var has_indices: bool = indices != null and not indices.is_empty()
 		var vc = arrs[Mesh.ARRAY_VERTEX].size() if arrs[Mesh.ARRAY_VERTEX] != null else 0
 		var num_tris = (indices.size() / 3) if has_indices else (vc / 3)
 
