@@ -206,8 +206,8 @@ static func separate_mesh_islands(mesh: Mesh, merge_overlapping: bool = false) -
 		# Triangle surface
 		var indices: Array = arrs[Mesh.ARRAY_INDEX]
 		var has_indices: bool = indices != null and not indices.is_empty()
-		var vc = arrs[Mesh.ARRAY_VERTEX].size() if arrs[Mesh.ARRAY_VERTEX] != null else 0
-		var num_tris = (indices.size() / 3) if has_indices else (vc / 3)
+		var vc: int = arrs[Mesh.ARRAY_VERTEX].size() if arrs[Mesh.ARRAY_VERTEX] != null else 0
+		var num_tris: int = (indices.size() / 3) if has_indices else (vc / 3)
 
 		for t in range(num_tris):
 			var v0_local: int
@@ -222,7 +222,7 @@ static func separate_mesh_islands(mesh: Mesh, merge_overlapping: bool = false) -
 				v1_local = t * 3 + 1
 				v2_local = t * 3 + 2
 
-			var gv0 := start + v0_local
+			var gv0: int = start + v0_local
 			var root := find.call(gv0)
 
 			if not comp_to_surf_tris.has(root):
@@ -233,7 +233,7 @@ static func separate_mesh_islands(mesh: Mesh, merge_overlapping: bool = false) -
 
 	# --- 4. Build output meshes ---
 	var separated_meshes: Array[Mesh] = []
-	var processed_roots := {}
+	var processed_roots: Dictionary = {}
 
 	# Process components that have triangle faces
 	for root in comp_to_surf_tris:
@@ -241,7 +241,7 @@ static func separate_mesh_islands(mesh: Mesh, merge_overlapping: bool = false) -
 			continue
 		processed_roots[root] = true
 
-		var new_mesh := ArrayMesh.new()
+		var new_mesh: ArrayMesh = ArrayMesh.new()
 
 		# --- Triangle surfaces in this component ---
 		if comp_to_surf_tris.has(root):
@@ -252,7 +252,7 @@ static func separate_mesh_islands(mesh: Mesh, merge_overlapping: bool = false) -
 					continue
 
 				# Collect used local vertices
-				var used_set := {}
+				var used_set: Dictionary = {}
 				for tri in tris:
 					used_set[tri[0]] = true
 					used_set[tri[1]] = true
@@ -262,35 +262,35 @@ static func separate_mesh_islands(mesh: Mesh, merge_overlapping: bool = false) -
 				used_local_verts.sort()
 
 				var num_used := used_local_verts.size()
-				var local_to_new := {}
+				var local_to_new: Dictionary = {}
 				for i in num_used:
 					local_to_new[used_local_verts[i]] = i
 
 				var orig_arrs: Array = surface_arrays_list[surf_idx]
 				var orig_verts: PackedVector3Array = orig_arrs[Mesh.ARRAY_VERTEX]
-				var mat := surface_materials[surf_idx]
+				var mat: Material = surface_materials[surf_idx]
 
 				# Build new arrays for this surface
-				var new_arrs := Array()
+				var new_arrs: Array = Array()
 				new_arrs.resize(Mesh.ARRAY_MAX)
 				for i in range(Mesh.ARRAY_MAX):
 					new_arrs[i] = null
 
 				# Copy vertex attributes (handles stride for tangent/bones/weights/custom)
-				var attr_list := [
+				var attr_list: Array = [
 					Mesh.ARRAY_VERTEX, Mesh.ARRAY_NORMAL, Mesh.ARRAY_TANGENT,
 					Mesh.ARRAY_COLOR, Mesh.ARRAY_TEX_UV, Mesh.ARRAY_TEX_UV2,
 					Mesh.ARRAY_BONES, Mesh.ARRAY_WEIGHTS,
 					Mesh.ARRAY_CUSTOM0, Mesh.ARRAY_CUSTOM1, Mesh.ARRAY_CUSTOM2, Mesh.ARRAY_CUSTOM3
 				]
 
-				var orig_vert_count := orig_verts.size() if orig_verts != null else 0
+				var orig_vert_count: int = orig_verts.size() if orig_verts != null else 0
 
 				for attr in attr_list:
 					if orig_arrs[attr] == null:
 						continue
 					var orig_data = orig_arrs[attr]
-					var stride := 1
+					var stride: int = 1
 					if attr in [Mesh.ARRAY_TANGENT, Mesh.ARRAY_BONES, Mesh.ARRAY_WEIGHTS]:
 						stride = 4
 					elif attr in [Mesh.ARRAY_CUSTOM0, Mesh.ARRAY_CUSTOM1, Mesh.ARRAY_CUSTOM2, Mesh.ARRAY_CUSTOM3]:
@@ -299,19 +299,19 @@ static func separate_mesh_islands(mesh: Mesh, merge_overlapping: bool = false) -
 
 					match typeof(orig_data):
 						TYPE_PACKED_VECTOR3_ARRAY:
-							var nd := PackedVector3Array()
+							var nd: PackedVector3Array = PackedVector3Array()
 							nd.resize(num_used)
 							for i in num_used:
 								nd[i] = orig_data[used_local_verts[i]]
 							new_arrs[attr] = nd
 						TYPE_PACKED_VECTOR2_ARRAY:
-							var nd := PackedVector2Array()
+							var nd: PackedVector2Array = PackedVector2Array()
 							nd.resize(num_used)
 							for i in num_used:
 								nd[i] = orig_data[used_local_verts[i]]
 							new_arrs[attr] = nd
 						TYPE_PACKED_COLOR_ARRAY:
-							var nd := PackedColorArray()
+							var nd: PackedColorArray = PackedColorArray()
 							nd.resize(num_used)
 							for i in num_used:
 								nd[i] = orig_data[used_local_verts[i]]
@@ -326,16 +326,16 @@ static func separate_mesh_islands(mesh: Mesh, merge_overlapping: bool = false) -
 								nd = PackedByteArray()
 							nd.resize(num_used * stride)
 							for i in num_used:
-								var old_base = used_local_verts[i] * stride
-								var new_base := i * stride
+								var old_base: int = used_local_verts[i] * stride
+								var new_base: int = i * stride
 								for k in range(stride):
 									nd[new_base + k] = orig_data[old_base + k]
 							new_arrs[attr] = nd
 
 				# Indices
-				var new_indices := PackedInt32Array()
+				var new_indices: PackedInt32Array = PackedInt32Array()
 				new_indices.resize(tris.size() * 3)
-				var idx := 0
+				var idx: int = 0
 				for tri in tris:
 					new_indices[idx] = local_to_new[tri[0]]; idx += 1
 					new_indices[idx] = local_to_new[tri[1]]; idx += 1
@@ -344,7 +344,7 @@ static func separate_mesh_islands(mesh: Mesh, merge_overlapping: bool = false) -
 
 				# Add surface
 				new_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, new_arrs)
-				var new_s_idx := new_mesh.get_surface_count() - 1
+				var new_s_idx: int = new_mesh.get_surface_count() - 1
 				if mat != null:
 					new_mesh.surface_set_material(new_s_idx, mat)
 
@@ -352,11 +352,11 @@ static func separate_mesh_islands(mesh: Mesh, merge_overlapping: bool = false) -
 		if comp_to_full_surfs.has(root):
 			for surf_idx in comp_to_full_surfs[root]:
 				var orig_arrs: Array = surface_arrays_list[surf_idx]
-				var prim := surface_primitive_types[surf_idx]
-				var mat := surface_materials[surf_idx]
+				var prim: int = surface_primitive_types[surf_idx]
+				var mat: Material = surface_materials[surf_idx]
 
 				new_mesh.add_surface_from_arrays(prim, orig_arrs)
-				var new_s_idx := new_mesh.get_surface_count() - 1
+				var new_s_idx: int = new_mesh.get_surface_count() - 1
 				if mat != null:
 					new_mesh.surface_set_material(new_s_idx, mat)
 
@@ -372,8 +372,8 @@ static func separate_mesh_islands(mesh: Mesh, merge_overlapping: bool = false) -
 		var new_mesh := ArrayMesh.new()
 		for surf_idx in comp_to_full_surfs[root]:
 			var orig_arrs: Array = surface_arrays_list[surf_idx]
-			var prim := surface_primitive_types[surf_idx]
-			var mat := surface_materials[surf_idx]
+			var prim: int = surface_primitive_types[surf_idx]
+			var mat: Material = surface_materials[surf_idx]
 
 			new_mesh.add_surface_from_arrays(prim, orig_arrs)
 			var new_s_idx := new_mesh.get_surface_count() - 1
