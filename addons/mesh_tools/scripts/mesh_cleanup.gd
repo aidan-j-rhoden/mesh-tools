@@ -1,12 +1,11 @@
 ## This function should be used with the await keyword if you are using the csg node right after,
-## as it is a heavy function and can cause dependancy issues in the downtime.
+## as it edits the resource, and process frame differences can cause dependancy issues in the downtime.
 static func rebuild_csg_node(csg_node:CSGShape3D, force:bool=false) -> void:
 	# Wait for the CSG to update and generate its baked mesh
 	await csg_node.get_tree().process_frame
 
 	# Get the baked mesh data - this includes all CSG operations from children.
-	# EXTREMELY expensive
-	var meshes := csg_node.get_meshes()
+	var meshes: Array = csg_node.get_meshes()
 
 	if meshes.size() < 2:
 		push_warning("CSG node has no baked mesh available")
@@ -14,7 +13,7 @@ static func rebuild_csg_node(csg_node:CSGShape3D, force:bool=false) -> void:
 			return
 
 		push_warning("Attempting to find root CSG node (expensive operation)")
-		var looking_for_parent = csg_node
+		var looking_for_parent: CSGShape3D = csg_node
 		while true:
 			if looking_for_parent.is_root_shape():
 				meshes = looking_for_parent.get_meshes()
@@ -32,7 +31,7 @@ static func rebuild_csg_node(csg_node:CSGShape3D, force:bool=false) -> void:
 	# but strip its CSG children and convert it into a CSGMesh3D-style holder
 	# of the baked mesh. We do this by replacing it with a CSGMesh3D, since the
 	# original could be any CSGShape3D subclass (CSGBox3D, CSGCombiner3D, etc.).
-	var replacement := CSGMesh3D.new()
+	var replacement: CSGMesh3D = CSGMesh3D.new()
 	replacement.name = csg_node.name
 	replacement.transform = csg_node.transform
 	replacement.operation = csg_node.operation
@@ -48,8 +47,8 @@ static func rebuild_csg_node(csg_node:CSGShape3D, force:bool=false) -> void:
 		child.queue_free()
 
 	# Swap the node in the tree
-	var parent := csg_node.get_parent()
-	var index := csg_node.get_index()
+	var parent: Node3D = csg_node.get_parent()
+	var index: int = csg_node.get_index()
 	var owner_node := csg_node.owner
 	parent.remove_child(csg_node)
 	parent.add_child(replacement)
@@ -57,6 +56,10 @@ static func rebuild_csg_node(csg_node:CSGShape3D, force:bool=false) -> void:
 	if owner_node:
 		replacement.owner = owner_node
 	csg_node.queue_free()
+
+
+static func _get_the_mesh(node: CSGMesh3D) -> Array:
+	return node.get_meshes()
 
 
 ## Returns a new ArrayMesh with vertices closer than [param distance] welded together.
@@ -74,19 +77,19 @@ static func merge_by_distance(mesh: Mesh, distance: float) -> ArrayMesh:
 	# 1. Flatten every surface into one unified vertex/index buffer, while
 	#    remembering which surface (and therefore which material) each
 	#    original triangle came from.
-	var flat := _flatten_mesh(mesh)
+	var flat: _FlatMesh = _flatten_mesh(mesh)
 	if flat.vertices.is_empty() or flat.indices.is_empty():
 		push_warning("MeshMergeByDistance: mesh has no geometry")
 		return _mesh_to_array_mesh(mesh)
 
 	# 2. Build the voxel grid and find the canonical (representative) vertex
 	#    for every input vertex.
-	var remap := _build_vertex_remap(flat.vertices, distance)
+	var remap: PackedInt32Array = _build_vertex_remap(flat.vertices, distance)
 
 	# 3. Build the merged vertex buffer and rewrite indices so triangles point
 	#    at the merged vertex set. Degenerate triangles (two or more shared
 	#    indices after merging) are dropped.
-	var merged := _build_merged_buffers(flat, remap)
+	var merged: _MergedBuffers = _build_merged_buffers(flat, remap)
 
 	# 4. Group triangles by source surface so each material gets its own
 	#    surface in the output. The vertex buffer itself is shared logic-wise:
@@ -112,8 +115,8 @@ class _FlatMesh:
 
 
 static func _flatten_mesh(mesh: Mesh) -> _FlatMesh:
-	var flat := _FlatMesh.new()
-	var surface_count := mesh.get_surface_count()
+	var flat: _FlatMesh = _FlatMesh.new()
+	var surface_count: int = mesh.get_surface_count()
 
 	# First pass: detect which attributes are present in *any* surface so we
 	# can keep the merged buffers consistent across surfaces.
@@ -134,7 +137,7 @@ static func _flatten_mesh(mesh: Mesh) -> _FlatMesh:
 		if verts == null or verts.is_empty():
 			continue
 
-		var base_offset := flat.vertices.size()
+		var base_offset: int = flat.vertices.size()
 		flat.vertices.append_array(verts)
 
 		# Pad / fill optional channels so all surfaces stay aligned.
@@ -204,14 +207,14 @@ static func _append_optional_color(dst: PackedColorArray, src, count: int, chann
 ## [br]To avoid testing every pair twice, when we examine vertex `i` we only
 ## look at vertices `j > i` in the 27-cell neighborhood.
 static func _build_vertex_remap(vertices: PackedVector3Array, distance: float) -> PackedInt32Array:
-	var vert_count := vertices.size()
-	var parent := PackedInt32Array()
+	var vert_count: int = vertices.size()
+	var parent: PackedInt32Array = PackedInt32Array()
 	parent.resize(vert_count)
 	for i in vert_count:
 		parent[i] = i # each vertex starts in its own set
 
-	var cell_size := distance
-	var dist_sq := distance * distance
+	var cell_size: float = distance
+	var dist_sq: float = distance * distance
 
 	# Bucket vertices into voxel cells. Key is a 64-bit packed cell coord;
 	# value is the list of vertex indices in that cell.
@@ -219,7 +222,7 @@ static func _build_vertex_remap(vertices: PackedVector3Array, distance: float) -
 	var cell_coords: PackedInt64Array = PackedInt64Array()
 	cell_coords.resize(vert_count)
 	for i in vert_count:
-		var ck := _cell_key64(vertices[i], cell_size)
+		var ck: int = _cell_key64(vertices[i], cell_size)
 		cell_coords[i] = ck
 		if not grid.has(ck):
 			grid[ck] = PackedInt32Array()
@@ -228,11 +231,11 @@ static func _build_vertex_remap(vertices: PackedVector3Array, distance: float) -
 	# Pair-test every vertex against its 27-cell neighborhood, only unioning
 	# pairs that genuinely pass the distance test.
 	for i in vert_count:
-		var cell := _cell_coord(vertices[i], cell_size)
+		var cell: Vector3i = _cell_coord(vertices[i], cell_size)
 		for dx in range(-1, 2):
 			for dy in range(-1, 2):
 				for dz in range(-1, 2):
-					var nkey := _pack_cell(cell.x + dx, cell.y + dy, cell.z + dz)
+					var nkey: int = _pack_cell(cell.x + dx, cell.y + dy, cell.z + dz)
 					if not grid.has(nkey):
 						continue
 					var bucket: PackedInt32Array = grid[nkey]
@@ -253,12 +256,12 @@ static func _build_vertex_remap(vertices: PackedVector3Array, distance: float) -
 
 # Helper: union-find helpers
 static func _uf_find(parent: PackedInt32Array, x: int) -> int:
-	# Iterative find with path compression.
-	var root := x
+	# Iterative find with path compression
+	var root: int = x
 	while parent[root] != root:
 		root = parent[root]
-	# Compress.
-	var cur := x
+	# Compress
+	var cur: int = x
 	while parent[cur] != root:
 		var nxt := parent[cur]
 		parent[cur] = root
@@ -267,8 +270,8 @@ static func _uf_find(parent: PackedInt32Array, x: int) -> int:
 
 
 static func _uf_union(parent: PackedInt32Array, a: int, b: int) -> void:
-	var ra := _uf_find(parent, a)
-	var rb := _uf_find(parent, b)
+	var ra: int = _uf_find(parent, a)
+	var rb: int = _uf_find(parent, b)
 	if ra == rb:
 		return
 	# Always keep the lower index as the root for deterministic output.
@@ -300,7 +303,7 @@ static func _pack_cell(x: int, y: int, z: int) -> int:
 
 
 static func _cell_key64(v: Vector3, cell_size: float) -> int:
-	var c := _cell_coord(v, cell_size)
+	var c: Vector3i = _cell_coord(v, cell_size)
 	return _pack_cell(c.x, c.y, c.z)
 
 
@@ -319,7 +322,7 @@ class _MergedBuffers:
 
 
 static func _build_merged_buffers(flat: _FlatMesh, remap: PackedInt32Array) -> _MergedBuffers:
-	var out := _MergedBuffers.new()
+	var out: _MergedBuffers = _MergedBuffers.new()
 	out.has_normals = flat.has_normals
 	out.has_uvs = flat.has_uvs
 	out.has_colors = flat.has_colors
@@ -371,7 +374,7 @@ static func _build_merged_buffers(flat: _FlatMesh, remap: PackedInt32Array) -> _
 			uv_sums[new_i] += flat.uvs[orig_i]
 			uv_counts[new_i] += 1
 		if out.has_colors:
-			var c := flat.colors[orig_i]
+			var c: Color = flat.colors[orig_i]
 			color_sums[new_i] = Color(
 				color_sums[new_i].r + c.r,
 				color_sums[new_i].g + c.g,
@@ -414,7 +417,7 @@ static func _build_merged_buffers(flat: _FlatMesh, remap: PackedInt32Array) -> _
 
 	# Rewrite triangles. Drop any that became degenerate after merging
 	# (two or three indices collapsed to the same vertex).
-	var tri_count := flat.indices.size() / 3
+	var tri_count: int = flat.indices.size() / 3
 	for t in tri_count:
 		var a: int = rep_to_new[remap[flat.indices[t * 3 + 0]]]
 		var b: int = rep_to_new[remap[flat.indices[t * 3 + 1]]]
@@ -435,8 +438,8 @@ static func _build_merged_buffers(flat: _FlatMesh, remap: PackedInt32Array) -> _
 ## physically — there are no per-material vertex copies that would create
 ## tears at material boundaries.
 static func _build_output_mesh(source_mesh: Mesh, merged: _MergedBuffers, _ignored: PackedInt32Array) -> ArrayMesh:
-	var out_mesh := ArrayMesh.new()
-	var surface_count := source_mesh.get_surface_count()
+	var out_mesh: ArrayMesh = ArrayMesh.new()
+	var surface_count: int = source_mesh.get_surface_count()
 
 	# Bucket merged triangles by their source surface index.
 	var per_surface_tris: Array[PackedInt32Array] = []
@@ -444,7 +447,7 @@ static func _build_output_mesh(source_mesh: Mesh, merged: _MergedBuffers, _ignor
 	for s in surface_count:
 		per_surface_tris[s] = PackedInt32Array()
 
-	var tri_count := merged.triangles.size() / 3
+	var tri_count: int = merged.triangles.size() / 3
 	for t in tri_count:
 		var s: int = merged.tri_surface[t]
 		# Guard against malformed data.
@@ -460,7 +463,7 @@ static func _build_output_mesh(source_mesh: Mesh, merged: _MergedBuffers, _ignor
 		if tris.is_empty():
 			continue
 
-		var arrays := []
+		var arrays: Array = []
 		arrays.resize(Mesh.ARRAY_MAX)
 		arrays[Mesh.ARRAY_VERTEX] = merged.vertices
 		if merged.has_normals:
@@ -472,7 +475,7 @@ static func _build_output_mesh(source_mesh: Mesh, merged: _MergedBuffers, _ignor
 		arrays[Mesh.ARRAY_INDEX] = tris
 
 		out_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
-		var mat := source_mesh.surface_get_material(s)
+		var mat: Material = source_mesh.surface_get_material(s)
 		if mat != null:
 			out_mesh.surface_set_material(out_mesh.get_surface_count() - 1, mat)
 
@@ -483,11 +486,11 @@ static func _build_output_mesh(source_mesh: Mesh, merged: _MergedBuffers, _ignor
 static func _mesh_to_array_mesh(mesh: Mesh) -> ArrayMesh:
 	if mesh is ArrayMesh:
 		return mesh
-	var out := ArrayMesh.new()
+	var out: ArrayMesh = ArrayMesh.new()
 	for s in mesh.get_surface_count():
-		var arrays := mesh.surface_get_arrays(s)
+		var arrays: Array = mesh.surface_get_arrays(s)
 		out.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
-		var mat := mesh.surface_get_material(s)
+		var mat: Material = mesh.surface_get_material(s)
 		if mat != null:
 			out.surface_set_material(out.get_surface_count() - 1, mat)
 	return out

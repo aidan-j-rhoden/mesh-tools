@@ -1,6 +1,5 @@
 class_name MeshTools
 
-
 ## Islands has the methods:
 ## [br]separate_mesh_islands
 ## [br]    Takes a [param mesh], and returns an array of all the floating mesh islands separated out of it.
