@@ -17,10 +17,10 @@ static func create_rigid_body_from_mesh(
 		push_error("create_rigid_body_from_mesh: mesh is null")
 		return null
 
-	var rigid_body := RigidBody3D.new()
+	var rigid_body: RigidBody3D = RigidBody3D.new()
 
 	# Visual representation
-	var mesh_instance := MeshInstance3D.new()
+	var mesh_instance: MeshInstance3D = MeshInstance3D.new()
 	mesh_instance.mesh = mesh
 	rigid_body.add_child(mesh_instance)
 
@@ -28,7 +28,7 @@ static func create_rigid_body_from_mesh(
 	rigid_body.add_child(_create_collision(mesh, collision_type))
 
 	# Physics material (friction + bounciness)
-	var phys_mat := PhysicsMaterial.new()
+	var phys_mat: PhysicsMaterial = PhysicsMaterial.new()
 	phys_mat.friction = friction
 	phys_mat.bounce = bounciness
 	rigid_body.physics_material_override = phys_mat
@@ -46,10 +46,10 @@ static func create_static_body_from_mesh(
 		push_error("create_static_body_from_mesh: mesh is null")
 		return null
 
-	var static_body := StaticBody3D.new()
+	var static_body: StaticBody3D = StaticBody3D.new()
 
 	# Visual representation
-	var mesh_instance := MeshInstance3D.new()
+	var mesh_instance: MeshInstance3D = MeshInstance3D.new()
 	mesh_instance.mesh = mesh
 	static_body.add_child(mesh_instance)
 
@@ -57,7 +57,7 @@ static func create_static_body_from_mesh(
 	static_body.add_child(_create_collision(mesh, collision_type))
 
 	# Physics material (friction + bounciness)
-	var phys_mat := PhysicsMaterial.new()
+	var phys_mat: PhysicsMaterial = PhysicsMaterial.new()
 	phys_mat.friction = friction
 	phys_mat.bounce = bounciness
 	static_body.physics_material_override = phys_mat
@@ -74,7 +74,7 @@ static func create_csg_body_from_mesh(
 		push_warning("create_csg_mesh: Received null mesh")
 		return null
 
-	var csg := CSGMesh3D.new()
+	var csg: CSGMesh3D = CSGMesh3D.new()
 	csg.mesh = mesh
 	csg.operation = operation
 	csg.use_collision = use_collision
@@ -114,8 +114,8 @@ static func _get_mesh_centroid(mesh: Mesh, volumetric: bool = false):
 		return Vector3.ZERO
 
 	if not volumetric:
-		var sum := Vector3.ZERO
-		var count := 0
+		var sum: Vector3 = Vector3.ZERO
+		var count: int = 0
 
 		var faces: PackedVector3Array = mesh.get_faces()
 		if faces.is_empty():
@@ -176,19 +176,19 @@ static func _get_mesh_volumetric_center(mesh: Mesh) -> Vector3:
 ##[br][br]
 ##WARNING: Using MESH as a collision option only works with [StaticBody3D], Godot does not support collison trimesh with [RigidBody3D].
 static func _create_collision(mesh: Mesh, collision_type) -> CollisionShape3D:
-	var collision_shape := CollisionShape3D.new()
-	var aabb := mesh.get_aabb()
-	var center := aabb.get_center()
+	var collision_shape: CollisionShape3D = CollisionShape3D.new()
+	var aabb: AABB = mesh.get_aabb()
+	var center: Vector3 = aabb.get_center()
 	var shape: Shape3D
 
 	match collision_type:
 		CollisionType.SPHERE:
-			var sphere := SphereShape3D.new()
+			var sphere: SphereShape3D = SphereShape3D.new()
 			sphere.radius = aabb.size.length() / 2.0   # enclosing sphere
 			shape = sphere
 			collision_shape.position = center
 		CollisionType.CUBE:
-			var box := BoxShape3D.new()
+			var box: BoxShape3D = BoxShape3D.new()
 			box.size = aabb.size
 			shape = box
 			collision_shape.position = center
