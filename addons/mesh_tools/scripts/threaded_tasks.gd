@@ -39,7 +39,7 @@ func run(callable: Callable, args: Array = []) -> bool:
 
 ## Convenience: await this and get the result directly.
 static func run_async(callable: Callable, args: Array = []) -> Variant:
-	var runner := ThreadRunner.new()
+	var runner: ThreadRunner = ThreadRunner.new()
 	runner.run(callable, args)
 	return await runner.finished
 
