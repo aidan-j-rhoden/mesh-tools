@@ -58,8 +58,48 @@ static func rebuild_csg_node(csg_node:CSGShape3D, force:bool=false) -> void:
 	csg_node.queue_free()
 
 
-static func _get_the_mesh(node: CSGMesh3D) -> Array:
-	return node.get_meshes()
+static func invert_normal_vectors(mesh: Mesh) -> Mesh:
+	var new_mesh: ArrayMesh = ArrayMesh.new()
+
+	for surface_idx in mesh.get_surface_count():
+		var mdt: MeshDataTool = MeshDataTool.new()
+		mdt.create_from_surface(mesh, surface_idx)
+
+		for v in mdt.get_vertex_count():
+			var normal: Vector3 = mdt.get_vertex_normal(v)
+			mdt.set_vertex_normal(v, -normal)
+
+		mdt.commit_to_surface(new_mesh)
+
+	return new_mesh
+
+
+static func flip_face_normals(mesh: Mesh) -> Mesh:
+	var new_mesh := ArrayMesh.new()
+	for surface_idx in mesh.get_surface_count():
+		var arrays := mesh.surface_get_arrays(surface_idx)
+
+		if arrays[Mesh.ARRAY_NORMAL] != null:
+			var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
+			for i in normals.size():
+				normals[i] = -normals[i]
+			arrays[Mesh.ARRAY_NORMAL] = normals
+
+		if arrays[Mesh.ARRAY_INDEX] != null:
+			var indices: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
+			for i in range(0, indices.size(), 3):
+				var tmp := indices[i + 1]
+				indices[i + 1] = indices[i + 2]
+				indices[i + 2] = tmp
+			arrays[Mesh.ARRAY_INDEX] = indices
+
+		new_mesh.add_surface_from_arrays(mesh.surface_get_primitive_type(surface_idx), arrays)
+
+		var mat: Material = mesh.surface_get_material(surface_idx)
+		if mat:
+			new_mesh.surface_set_material(surface_idx, mat)
+
+	return new_mesh
 
 
 ## Returns a new ArrayMesh with vertices closer than [param distance] welded together.

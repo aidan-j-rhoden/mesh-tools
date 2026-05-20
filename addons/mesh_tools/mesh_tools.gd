@@ -24,3 +24,7 @@ const CleanUp = preload("res://addons/mesh_tools/scripts/mesh_cleanup.gd")
 ## [br]set_center_of_mass
 ## [br]    A function that is almost mandatory to run on [RigidBody3D]s generated from create_rigid_body_from_mesh
 const BodyProblems = preload("res://addons/mesh_tools/scripts/body_problems.gd")
+
+
+## MeshEffects has the methods:
+const MeshEffects = preload("res://addons/mesh_tools/scripts/mesh_effects.gd")
