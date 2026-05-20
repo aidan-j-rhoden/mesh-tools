@@ -38,6 +38,9 @@ func the_test() -> void:
 
 	# Random tests on the random sphere
 	MeshTools.BodyProblems.set_center_of_mass($RigidBody3D, true)
+	var new_mesh = MeshRandomizer.randomize_mesh($RigidBody3D/MeshInstance3D.mesh, 0.02, 0.0, 0.8, 1)
+	$RigidBody3D/MeshInstance3D.mesh = new_mesh
+	await get_tree().process_frame
 	var new_thing: CSGMesh3D = MeshTools.BodyProblems.create_csg_body_from_mesh($RigidBody3D/MeshInstance3D.mesh, true)
 	add_child(new_thing)
 	new_thing.position = $RigidBody3D.position
