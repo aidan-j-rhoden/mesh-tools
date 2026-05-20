@@ -369,14 +369,14 @@ static func separate_mesh_islands(mesh: Mesh, merge_overlapping: bool = false) -
 			continue
 		processed_roots[root] = true
 
-		var new_mesh := ArrayMesh.new()
+		var new_mesh: ArrayMesh = ArrayMesh.new()
 		for surf_idx in comp_to_full_surfs[root]:
 			var orig_arrs: Array = surface_arrays_list[surf_idx]
 			var prim: int = surface_primitive_types[surf_idx]
 			var mat: Material = surface_materials[surf_idx]
 
 			new_mesh.add_surface_from_arrays(prim, orig_arrs)
-			var new_s_idx := new_mesh.get_surface_count() - 1
+			var new_s_idx: int = new_mesh.get_surface_count() - 1
 			if mat != null:
 				new_mesh.surface_set_material(new_s_idx, mat)
 
