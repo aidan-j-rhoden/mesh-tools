@@ -284,9 +284,9 @@ static func _uf_union(parent: PackedInt32Array, a: int, b: int) -> void:
 # Helper: cell-coordinate helpers
 static func _cell_coord(v: Vector3, cell_size: float) -> Vector3i:
 	return Vector3i(
-		int(floor(v.x / cell_size)),
-		int(floor(v.y / cell_size)),
-		int(floor(v.z / cell_size))
+		int(floorf(v.x / cell_size)),
+		int(floorf(v.y / cell_size)),
+		int(floorf(v.z / cell_size))
 	)
 
 

@@ -52,7 +52,7 @@ static func calculate_mesh_volume(mesh: Mesh) -> float:
 				var v2: Vector3 = vertices[idx2]
 				total_volume += _signed_tetra_volume(v0, v1, v2)
 
-	return abs(total_volume)
+	return absf(total_volume)
 
 
 ## Helper: signed volume of a tetrahedron formed by origin + triangle

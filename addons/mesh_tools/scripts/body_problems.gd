@@ -160,7 +160,7 @@ static func _get_mesh_volumetric_center(mesh: Mesh) -> Vector3:
 		var tet_centroid: Vector3 = (v1 + v2 + v3) / 4.0
 		weighted_sum += tet_centroid * vol
 
-	if abs(total_volume) < 1e-8:
+	if absf(total_volume) < 1e-8:
 		push_warning("get_mesh_volumetric_center: mesh has zero or near-zero volume")
 		return Vector3.ZERO
 
