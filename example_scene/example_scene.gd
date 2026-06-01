@@ -39,8 +39,10 @@ func the_test() -> void:
 	# Random tests on the random sphere
 	MeshTools.BodyProblems.set_center_of_mass($RigidBody3D, true)
 	var new_mesh: Mesh = MeshTools.MeshEffects.randomize_mesh($RigidBody3D/MeshInstance3D.mesh, 0.01, 0.5, 0.8)
+	$RigidBody3D/MeshInstance3D.mesh = new_mesh
 	# For some reason the winding is reversed only for MeshInstance3D, (not the csg node) so we need to invert the normal vectors to get proper lighting.  Absolutely no clue why or how this happens.
-	$RigidBody3D/MeshInstance3D.mesh = MeshTools.CleanUp.invert_normal_vectors(new_mesh)
+	$RigidBody3D/MeshInstance3D.mesh = MeshTools.CleanUp.invert_normal_vectors($RigidBody3D/MeshInstance3D.mesh)
+	#$RigidBody3D/MeshInstance3D.mesh = MeshTools.CleanUp.flip_face_normals($RigidBody3D/MeshInstance3D.mesh)
 	var new_thing: CSGMesh3D = MeshTools.BodyProblems.create_csg_body_from_mesh(new_mesh, true)
 	add_child(new_thing)
 	new_thing.position = $RigidBody3D.position

@@ -57,7 +57,7 @@ static func rebuild_csg_node(csg_node:CSGShape3D, force:bool=false) -> void:
 		replacement.owner = owner_node
 	csg_node.queue_free()
 
-
+## This literally inverts the direction of the normal, without touching winding order or face orientation.
 static func invert_normal_vectors(mesh: Mesh) -> Mesh:
 	var new_mesh: ArrayMesh = ArrayMesh.new()
 
@@ -73,7 +73,7 @@ static func invert_normal_vectors(mesh: Mesh) -> Mesh:
 
 	return new_mesh
 
-
+## Flips the direction of the face by rebuilding the mesh.
 static func flip_face_normals(mesh: Mesh) -> Mesh:
 	var new_mesh := ArrayMesh.new()
 	for surface_idx in mesh.get_surface_count():

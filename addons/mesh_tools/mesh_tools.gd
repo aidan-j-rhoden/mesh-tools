@@ -12,6 +12,10 @@ const Islands = preload("res://addons/mesh_tools/scripts/island_separate.gd")
 ## [br]    Bakes any CSG node and all it's children into one new [CSGMesh3D].  The children are then removed after.
 ## [br]merge_by_distance
 ## [br]    Takes a [param mesh] and performs a merge by distance operation on it, useful after a CSG operation.
+## [br]invert_normal_vectors
+## [br]    This function takes a [param mesh] and inverts the normal.  It does not flip the face orientation, (which would affect backface culling) but just the "amplitude" of the normal.[br]Use this function if it looks like your model's lighting is flipped, as if it were illuminated from the interior.
+## [br]flip_face_normals
+## [br]    Takes a [param mesh] and flips the face orientation.  This is similar to Blender's flip normals operation, and it does affect backface culling.
 const CleanUp = preload("res://addons/mesh_tools/scripts/mesh_cleanup.gd")
 
 ## BodyProblems has the methods:
@@ -25,6 +29,7 @@ const CleanUp = preload("res://addons/mesh_tools/scripts/mesh_cleanup.gd")
 ## [br]    A function that is almost mandatory to run on [RigidBody3D]s generated from create_rigid_body_from_mesh
 const BodyProblems = preload("res://addons/mesh_tools/scripts/body_problems.gd")
 
-
 ## MeshEffects has the methods:
+## [br]randomize_mesh
+## [br]    Takes a [param mesh] and randomizes the vertex positions.  The normals, or winding order, may need to be flipped using CleanUp.invert_normal_vectors
 const MeshEffects = preload("res://addons/mesh_tools/scripts/mesh_effects.gd")
