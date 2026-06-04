@@ -13,7 +13,7 @@ config_version=5
 config/name="Mesh Tools Dev"
 run/main_scene="uid://damvt0lnnx0jh"
 config/features=PackedStringArray("4.6", "Forward Plus")
-config/icon="res://example_scene/icon.svg"
+config/icon="uid://rrjposwtudxn"
 
 [debug]
 
