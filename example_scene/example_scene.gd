@@ -1,16 +1,16 @@
 extends Node3D
 
+# Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	the_test()
 
 
-# Called when the node enters the scene tree for the first time.
 func the_test() -> void:
 	print("Started tests")
-	await MeshTools.CleanUp.rebuild_csg_node($CSGBox3D/CSGSphere3D5, true) # Compile the CSG node tree, and ALL it's children into one CSGMesh node
+	await MeshTools.CleanUp.rebuild_csg_node($CSGBox3D/CSGSphere3D5, true) # Compile the CSG node tree, and ALL it's children into one CSGMesh node.  Important to use the await keyword, becuase this critically alters the structure of the mesh and nodes.
 	print("Rebuilt CSG tree")
 
-	# Merge the newly compiled mesh by distance, cleaning up geometry by removing doubled vertices.
+	# Merge the newly compiled mesh by distance, cleaning up geometry by removing doubled vertices.  We run it in a separate thread to not bog down the main loop, letting it calculate in the background.
 	$CSGBox3D.mesh = await ThreadRunner.run_async(MeshTools.CleanUp.merge_by_distance, [$CSGBox3D.mesh, 0.02])
 	print("Merged the mesh vertices by distance")
 
@@ -34,7 +34,7 @@ func the_test() -> void:
 		if MeshTools.Islands.calculate_mesh_volume(m) <= 0.1:
 			mi.queue_free()
 	print("Created rigid bodies from mesh islands")
-	$CSGBox3D.queue_free() # We don't need this anymore, but only delete it after everything else is done for visuals.  This runs in one go, and therefore doesn't matter, but it's good practice.
+	$CSGBox3D.queue_free() # We don't need this anymore, but only delete it after everything else is done, both to avoid potential visual stutter, and more importantly, dependency issues.
 
 	# Random tests on the random sphere
 	MeshTools.BodyProblems.set_center_of_mass($RigidBody3D, true)
