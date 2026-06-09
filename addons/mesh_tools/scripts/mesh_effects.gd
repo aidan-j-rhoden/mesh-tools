@@ -27,13 +27,13 @@ static func randomize_mesh(
 		push_error("randomize_mesh: input mesh is null")
 		return null
 
-	var rng := RandomNumberGenerator.new()
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 	if seed >= 0:
 		rng.seed = seed
 	else:
 		rng.randomize()
 
-	var result := ArrayMesh.new()
+	var result: ArrayMesh = ArrayMesh.new()
 
 	for surface_idx in range(mesh.get_surface_count()):
 		var arrays: Array = mesh.surface_get_arrays(surface_idx)
@@ -52,21 +52,21 @@ static func randomize_mesh(
 
 		# Build a map from position -> list of vertex indices that share that position.
 		# This lets us apply ONE random offset per unique location, keeping the mesh welded.
-		var position_groups := {}
+		var position_groups: Dictionary = {}
 		for i in range(verts.size()):
 			# Quantize position slightly so floating-point noise doesn't separate
 			# vertices that should be considered identical.
-			var key := _quantize_key(verts[i])
+			var key: String = _quantize_key(verts[i])
 			if not position_groups.has(key):
 				position_groups[key] = []
 			position_groups[key].append(i)
 
 		# Determine per-unique-position normals (average of all shared vertices' normals)
 		# so the "along normal" displacement matches the surface direction even at seams.
-		var group_normals := {}
+		var group_normals: Dictionary = {}
 		if not normals.is_empty():
 			for key in position_groups.keys():
-				var n_sum := Vector3.ZERO
+				var n_sum: Vector3 = Vector3.ZERO
 				for i in position_groups[key]:
 					n_sum += normals[i]
 				if n_sum.length_squared() > 0.0:
@@ -75,7 +75,7 @@ static func randomize_mesh(
 					group_normals[key] = Vector3.UP
 
 		# Compute and apply one offset per unique position.
-		var new_verts := PackedVector3Array()
+		var new_verts: PackedVector3Array = PackedVector3Array()
 		new_verts.resize(verts.size())
 
 		for key in position_groups.keys():
@@ -83,36 +83,36 @@ static func randomize_mesh(
 			var base_pos: Vector3 = verts[indices_at_pos[0]]
 
 			# Random vector with independent components in [-1, 1].
-			var rand_vec := Vector3(
+			var rand_vec: Vector3 = Vector3(
 				rng.randf_range(-1.0, 1.0),
 				rng.randf_range(-1.0, 1.0),
 				rng.randf_range(-1.0, 1.0)
 			)
 
 			# Uniform scalar in [-1, 1] applied equally to all axes.
-			var uniform_scalar := rng.randf_range(-1.0, 1.0)
-			var uniform_vec := Vector3(uniform_scalar, uniform_scalar, uniform_scalar)
+			var uniform_scalar: float = rng.randf_range(-1.0, 1.0)
+			var uniform_vec: Vector3 = Vector3(uniform_scalar, uniform_scalar, uniform_scalar)
 
 			# Blend between independent-axis and uniform-axis random vectors.
-			var offset_dir := rand_vec.lerp(uniform_vec, clamp(uniform, 0.0, 1.0))
+			var offset_dir: Vector3 = rand_vec.lerp(uniform_vec, clamp(uniform, 0.0, 1.0))
 
 			# Blend between random direction and the vertex's normal direction.
 			if along_normal > 0.0 and group_normals.has(key):
 				var normal: Vector3 = group_normals[key]
 				# Use a signed scalar so vertices can move inward or outward along the normal.
-				var signed_scalar := rng.randf_range(-1.0, 1.0)
-				var normal_offset := normal * signed_scalar
+				var signed_scalar: float = rng.randf_range(-1.0, 1.0)
+				var normal_offset: Vector3 = normal * signed_scalar
 				offset_dir = offset_dir.lerp(normal_offset, clamp(along_normal, 0.0, 1.0))
 
-			var offset := offset_dir * amount
-			var new_pos := base_pos + offset
+			var offset: Vector3  = offset_dir * amount
+			var new_pos: Vector3 = base_pos + offset
 
 			# Write the same new position back to every vertex that shared this location.
 			for i in indices_at_pos:
 				new_verts[i] = new_pos
 
 		# Recalculate normals based on face geometry so they point outward correctly.
-		var new_normals := _recalculate_normals(new_verts, indices)
+		var new_normals: PackedVector3Array = _recalculate_normals(new_verts, indices)
 
 		# Rebuild the surface arrays, preserving extra channels (UVs, colors, etc.).
 		var new_arrays: Array = arrays.duplicate()
@@ -128,7 +128,7 @@ static func randomize_mesh(
 		result.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, new_arrays)
 
 		# Carry over the material from the original surface.
-		var mat := mesh.surface_get_material(surface_idx)
+		var mat: Material = mesh.surface_get_material(surface_idx)
 		if mat:
 			result.surface_set_material(surface_idx, mat)
 
@@ -139,7 +139,7 @@ static func randomize_mesh(
 # 1e5 gives ~5 decimal places of precision, which is more than enough to weld
 # shared edges without collapsing legitimately distinct vertices.
 static func _quantize_key(v: Vector3) -> String:
-	var q := 100000.0
+	var q: float = 100000.0
 	return "%d,%d,%d" % [
 		int(round(v.x * q)),
 		int(round(v.y * q)),
@@ -152,7 +152,7 @@ static func _quantize_key(v: Vector3) -> String:
 # the source mesh was wound correctly to begin with — Godot uses clockwise winding
 # when viewed from outside, so cross(b - a, c - a) gives the outward face normal).
 static func _recalculate_normals(verts: PackedVector3Array, indices: PackedInt32Array) -> PackedVector3Array:
-	var normals := PackedVector3Array()
+	var normals: PackedVector3Array = PackedVector3Array()
 	normals.resize(verts.size())
 	for i in range(normals.size()):
 		normals[i] = Vector3.ZERO
@@ -160,19 +160,19 @@ static func _recalculate_normals(verts: PackedVector3Array, indices: PackedInt32
 	# Accumulate face normals onto each of the face's three vertices.
 	# We weight by the un-normalized cross product so larger faces contribute more,
 	# which gives smoother results on irregular meshes.
-	var tri_count := indices.size() / 3
+	var tri_count: int = indices.size() / 3
 	for t in range(tri_count):
-		var i0 := indices[t * 3 + 0]
-		var i1 := indices[t * 3 + 1]
-		var i2 := indices[t * 3 + 2]
+		var i0: int = indices[t * 3 + 0]
+		var i1: int = indices[t * 3 + 1]
+		var i2: int = indices[t * 3 + 2]
 
-		var a := verts[i0]
-		var b := verts[i1]
-		var c := verts[i2]
+		var a: Vector3 = verts[i0]
+		var b: Vector3 = verts[i1]
+		var c: Vector3 = verts[i2]
 
 		# Godot's default winding for surface tools is clockwise as seen from outside,
 		# so this cross product yields the outward-facing normal.
-		var face_normal := (b - a).cross(c - a)
+		var face_normal: Vector3 = (b - a).cross(c - a)
 
 		normals[i0] += face_normal
 		normals[i1] += face_normal
