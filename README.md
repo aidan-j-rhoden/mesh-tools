@@ -24,6 +24,10 @@ This is a bunch of helper functions that I've created for one of my projects.
 ### `separate_mesh_islands`
 - Takes a mesh, and returns an array of all the floating mesh islands separated out of it.
 
+## Mesh Effects:
+### `randomize_mesh`
+- Takes a mesh and randomizes the vertex positions.  The normals, or winding order, may need to be flipped using `CleanUp.invert_normal_vectors` depending on the situation.<br>Parameters are included for distance, uniform,  along_normal, and the seed.<br>It's pretty much copied from Blender's Mesh > Transform > Randomize operation
+
 There is an example scene and script that uses just about every function in the toolset, which you can access by downloading it from the Github repo.
 <br>**Warning**: The demo scene is very intensive, and an extreme edge case way beyond realistic applications.
 
