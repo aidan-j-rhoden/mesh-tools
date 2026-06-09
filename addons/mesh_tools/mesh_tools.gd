@@ -31,5 +31,5 @@ const BodyProblems = preload("res://addons/mesh_tools/scripts/body_problems.gd")
 
 ## MeshEffects has the methods:
 ## [br]randomize_mesh
-## [br]    Takes a [param mesh] and randomizes the vertex positions.  The normals, or winding order, may need to be flipped using CleanUp.invert_normal_vectors
+## [br]    Takes a [param mesh] and randomizes the vertex positions.  The normals, or winding order, may need to be flipped using [method CleanUp.invert_normal_vectors] depending on the situation.[br]Parameters are included for [param distance], [param uniform],  [param along_normal], and the [param seed].
 const MeshEffects = preload("res://addons/mesh_tools/scripts/mesh_effects.gd")
