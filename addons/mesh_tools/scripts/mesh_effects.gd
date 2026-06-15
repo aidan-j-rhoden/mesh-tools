@@ -1,5 +1,136 @@
 extends Node
 
+
+static func regenerate_normals(mesh: Mesh, flip: bool = false) -> Mesh:
+	var tool: SurfaceTool = SurfaceTool.new()
+	tool.create_from(mesh, 0)
+	tool.generate_normals(flip)
+	tool.commit(mesh)
+	return mesh
+
+
+## Generates a new ArrayMesh with angle-based hard edges (sharp normals).
+## Boundary edges (1 face) are always sharp.
+## @param source_mesh: The input Mesh (ArrayMesh recommended)
+## @param angle_threshold: Max angle (in degrees) between face normals to keep smooth.
+##                         Edges with larger angle (or boundary) get split vertices + hard normals.
+static func generate_hard_edge_mesh(source_mesh: Mesh, angle_threshold: float = 60.0) -> ArrayMesh:
+	if source_mesh == null or source_mesh.get_surface_count() == 0:
+		return null
+
+	var result := ArrayMesh.new()
+
+	for s in source_mesh.get_surface_count():
+		var mdt := MeshDataTool.new()
+		if mdt.create_from_surface(source_mesh, s) != OK:
+			push_warning("Could not read surface %d" % s)
+			continue
+
+		var edge_count := mdt.get_edge_count()
+		var is_sharp := PackedByteArray()
+		is_sharp.resize(edge_count)
+
+		var threshold_rad := deg_to_rad(angle_threshold)
+
+		# === 1. Find all edges and mark sharp ones ===
+		for e in edge_count:
+			var faces := mdt.get_edge_faces(e)
+			if faces.size() != 2:
+				is_sharp[e] = 1          # Boundary / non-manifold → always sharp
+				continue
+
+			var n1 := mdt.get_face_normal(faces[0])
+			var n2 := mdt.get_face_normal(faces[1])
+			var dot := clamp(n1.dot(n2), -1.0, 1.0)
+			var angle := acos(dot)
+			is_sharp[e] = 1 if angle > threshold_rad else 0
+
+		# === 2. Build new vertex data with splitting for sharp edges ===
+		var new_verts := PackedVector3Array()
+		var new_norms := PackedVector3Array()
+		var face_to_new_verts: Dictionary = {}   # face_idx → PackedInt32Array[3]
+
+		var vcount := mdt.get_vertex_count()
+		for v in vcount:
+			var incident := mdt.get_vertex_faces(v)
+			if incident.is_empty():
+				continue
+
+			# Group faces around this vertex into smooth clusters
+			var groups: Array = []
+			var face_to_group: Dictionary = {}
+			for i in incident.size():
+				var f := incident[i]
+				groups.append([f])
+				face_to_group[f] = i
+
+			# Merge groups connected by smooth (non-sharp) edges
+			for f in incident:
+				for k in 3:
+					var e := mdt.get_face_edge(f, k)
+					if is_sharp[e] == 1:
+						continue
+					var adj := mdt.get_edge_faces(e)
+					for adj_f in adj:
+						if adj_f == f or not face_to_group.has(adj_f):
+							continue
+						var g1 = face_to_group[f]
+						var g2 = face_to_group[adj_f]
+						if g1 != g2:
+							for ff in groups[g2]:
+								face_to_group[ff] = g1
+								groups[g1].append(ff)
+							groups[g2].clear()
+
+			# Create one new vertex per smooth group + assign normals
+			for g_arr in groups:
+				if g_arr.is_empty():
+					continue
+				var pos := mdt.get_vertex(v)
+				var avg := Vector3.ZERO
+				for f in g_arr:
+					avg += mdt.get_face_normal(f)
+				if avg.length() > 0.0001:
+					avg = avg.normalized()
+				else:
+					avg = Vector3.UP
+
+				var new_idx := new_verts.size()
+				new_verts.append(pos)
+				new_norms.append(avg)
+
+				for f in g_arr:
+					if not face_to_new_verts.has(f):
+						face_to_new_verts[f] = PackedInt32Array([-1, -1, -1])
+					for local in 3:
+						if mdt.get_face_vertex(f, local) == v:
+							face_to_new_verts[f][local] = new_idx
+							break
+
+		# === 3. Build index array ===
+		var indices := PackedInt32Array()
+		for f in mdt.get_face_count():
+			if face_to_new_verts.has(f):
+				var nv = face_to_new_verts[f]
+				indices.append_array(nv)
+
+		# === 4. Create new surface ===
+		var arrays := []
+		arrays.resize(Mesh.ARRAY_MAX)
+		arrays[Mesh.ARRAY_VERTEX] = new_verts
+		arrays[Mesh.ARRAY_NORMAL] = new_norms
+		arrays[Mesh.ARRAY_INDEX] = indices
+
+		result.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+
+		# Copy material if present
+		var mat := mdt.get_material()
+		if mat:
+			result.surface_set_material(result.get_surface_count() - 1, mat)
+
+	return result
+
+
 # Randomizes the vertices of a mesh similar to Blender's Mesh > Transform > Randomize.
 # Preserves mesh topology (no splits) by merging duplicate vertices, applying the same
 # offset to all coincident vertices, then recalculating normals with correct outward winding.

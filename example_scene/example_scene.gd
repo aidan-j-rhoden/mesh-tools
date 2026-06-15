@@ -20,6 +20,8 @@ func the_test() -> void:
 
 	# For each separated mesh, create a new rigid body and add it to the scene
 	for m in separated_meshes:
+		m = MeshTools.MeshEffects.regenerate_normals(m)
+		m = MeshTools.MeshEffects.generate_hard_edge_mesh(m)
 		var mi: RigidBody3D = MeshTools.BodyProblems.create_rigid_body_from_mesh(
 			m, # The mesh
 			1.0, # Friction
