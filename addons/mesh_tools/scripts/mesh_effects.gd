@@ -14,7 +14,7 @@ static func regenerate_normals(mesh: Mesh, flip: bool = false) -> Mesh:
 ## @param source_mesh: The input Mesh (ArrayMesh recommended)
 ## @param angle_threshold: Max angle (in degrees) between face normals to keep smooth.
 ##                         Edges with larger angle (or boundary) get split vertices + hard normals.
-static func generate_hard_edge_mesh(source_mesh: Mesh, angle_threshold: float = 60.0) -> ArrayMesh:
+static func shade_smooth_by_angle(source_mesh: Mesh, angle_threshold: float = 60.0) -> ArrayMesh:
 	if source_mesh == null or source_mesh.get_surface_count() == 0:
 		return null
 

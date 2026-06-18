@@ -20,21 +20,22 @@ func the_test() -> void:
 
 	# For each separated mesh, create a new rigid body and add it to the scene
 	for m in separated_meshes:
-		m = MeshTools.MeshEffects.regenerate_normals(m)
-		m = MeshTools.MeshEffects.generate_hard_edge_mesh(m)
+		# Perhaps you want to make sure we're not preserving any islands that are too small?  Run this before any other operations on the mesh to not waste time.  Why generate resourses that you're just going to delete anyway?
+		# This checks the volume, in cubic meters.  A value of 0.6 here will elimate all the blue cubes but leave the white ones.
+		if MeshTools.Islands.calculate_mesh_volume(m) <= 0.6:
+			continue
+
+		m = MeshTools.MeshEffects.shade_smooth_by_angle(m, 35.0) # Very important.  After welding, all the normals are wacked up.  This works exactly like Blender's shade auto-smooth.
 		var mi: RigidBody3D = MeshTools.BodyProblems.create_rigid_body_from_mesh(
 			m, # The mesh
 			1.0, # Friction
 			0.3, # Bounciness
-			MeshTools.BodyProblems.CollisionType.CUBE, # Type of collision mesh generated
+			MeshTools.BodyProblems.CollisionType.CUBE, # Type of collision mesh generated.  We choose a cube here because that's literally perfect.  The other options are SPHERE, CONVEX, and MESH.  MESH only works with StaticBody3Ds.
 		)
 		add_child(mi)
 		mi.global_position = $CSGBox3D.global_position
 		# Make sure to set the center of mass of any new mass, as it defaults to the mesh origin, and these all have the same origin.  If left unalterd, physics will be comedically wrong.
 		MeshTools.BodyProblems.set_center_of_mass(mi, true)
-		# Perhaps you want to make sure we're not preserving any islands that are too small?  This checks the volume.
-		if MeshTools.Islands.calculate_mesh_volume(m) <= 0.1:
-			mi.queue_free()
 	print("Created rigid bodies from mesh islands")
 	$CSGBox3D.queue_free() # We don't need this anymore, but only delete it after everything else is done, both to avoid potential visual stutter, and more importantly, dependency issues.
 
