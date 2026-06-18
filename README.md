@@ -27,6 +27,8 @@ This is a bunch of helper functions that I've created for one of my projects.
 ## Mesh Effects:
 ### `randomize_mesh`
 - Takes a mesh and randomizes the vertex positions.  The normals, or winding order, may need to be flipped using `CleanUp.invert_normal_vectors` depending on the situation.<br>Parameters are included for distance, uniform,  along_normal, and the seed.<br>It's pretty much copied from Blender's Mesh > Transform > Randomize operation
+### `shade_smooth_by_angle`
+- Takes a mesh and an angle, and performs a shade autosmooth operation, like in Blender.
 
 There is an example scene and script that uses just about every function in the toolset, which you can access by downloading it from the Github repo.
 <br>**Warning**: The demo scene is very intensive, and an extreme edge case way beyond realistic applications.
