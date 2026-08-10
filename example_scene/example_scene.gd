@@ -49,6 +49,24 @@ func the_test() -> void:
 	var new_thing: CSGMesh3D = MeshTools.BodyProblems.create_csg_body_from_mesh(new_mesh, true)
 	add_child(new_thing)
 	new_thing.position = $RigidBody3D.position
+	
+	await get_tree().create_timer(2).timeout
+
+	await MeshTools.CleanUp.rebuild_csg_node($CSGBox3D3)
+	$CSGBox3D3.mesh = await ThreadRunner.run_async(MeshTools.CleanUp.merge_by_distance, [$CSGBox3D3.mesh, 0.01])
+	$CSGBox3D3.mesh = MeshTools.MeshEffects.shade_smooth_by_angle($CSGBox3D3.mesh, 35.0)
+
+	# TODO structure check here
+
+	var cuts: Array = MeshTools.MeshDestruction.slice_mesh($ThisOneGetsIt/TheGiver, $ThisOneGetsIt.mesh, load("res://example_scene/cut.tres"))
+	$ThisOneGetsIt.mesh = cuts[0]
+	$ThisOneGetsIt.add_child(MeshTools.BodyProblems.create_static_body_from_mesh($ThisOneGetsIt.mesh, 0.7, 0.0, MeshTools.BodyProblems.CollisionType.CONVEX))
+	var part: RigidBody3D = MeshTools.BodyProblems.create_rigid_body_from_mesh(cuts[1], 0.9)
+	MeshTools.BodyProblems.set_center_of_mass(part, true)
+	part.mass = 2000.0
+	$ThisOneGetsIt.add_child(part)
+	$ThisOneGetsIt.mesh = null
+	$ThisOneGetsIt/TheGiver.queue_free()
 
 
 func _input(_event: InputEvent) -> void:
