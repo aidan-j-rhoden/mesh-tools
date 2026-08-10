@@ -1,7 +1,22 @@
 extends Node3D
 
+var melt_material: ShaderMaterial = ShaderMaterial.new()
+
+
+
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	melt_material.shader = preload("res://example_scene/melted_metal.gdshader")
+	melt_material.set_shader_parameter("roughness", 0.5)
+	melt_material.set_shader_parameter("noise_scale", 50.0)
+	melt_material.set_shader_parameter("flow_speed", 0.0)
+	melt_material.set_shader_parameter("fresnel_power", 6.0)
+	melt_material.set_shader_parameter("edge_glow_strength", 10.0)
+	melt_material.set_shader_parameter("vein_threshold", 0.377)
+	melt_material.set_shader_parameter("vein_glow_strength", 5.2)
+	melt_material.set_shader_parameter("pulse_speed", 2.0)
+	melt_material.set_shader_parameter("displacement", 0.0)
+
 	the_test()
 
 
@@ -58,7 +73,8 @@ func the_test() -> void:
 
 	# TODO structure check here
 
-	var cuts: Array = MeshTools.MeshDestruction.slice_mesh($ThisOneGetsIt/TheGiver, $ThisOneGetsIt.mesh, load("res://example_scene/cut.tres"))
+
+	var cuts: Array = MeshTools.MeshDestruction.slice_mesh($ThisOneGetsIt/TheGiver, $ThisOneGetsIt.mesh, melt_material)
 	$ThisOneGetsIt.mesh = cuts[0]
 	var base = MeshTools.BodyProblems.create_static_body_from_mesh(cuts[0], 0.7, 0.0, MeshTools.BodyProblems.CollisionType.CONVEX)
 	base.collision_layer = 0b11
