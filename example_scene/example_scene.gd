@@ -60,7 +60,9 @@ func the_test() -> void:
 
 	var cuts: Array = MeshTools.MeshDestruction.slice_mesh($ThisOneGetsIt/TheGiver, $ThisOneGetsIt.mesh, load("res://example_scene/cut.tres"))
 	$ThisOneGetsIt.mesh = cuts[0]
-	$ThisOneGetsIt.add_child(MeshTools.BodyProblems.create_static_body_from_mesh($ThisOneGetsIt.mesh, 0.7, 0.0, MeshTools.BodyProblems.CollisionType.CONVEX))
+	var base = MeshTools.BodyProblems.create_static_body_from_mesh(cuts[0], 0.7, 0.0, MeshTools.BodyProblems.CollisionType.CONVEX)
+	base.collision_layer = 0b11
+	$ThisOneGetsIt.add_child(base)
 	var part: RigidBody3D = MeshTools.BodyProblems.create_rigid_body_from_mesh(cuts[1], 0.9)
 	MeshTools.BodyProblems.set_center_of_mass(part, true)
 	part.mass = 2000.0

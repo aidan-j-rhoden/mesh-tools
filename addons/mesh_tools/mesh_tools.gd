@@ -36,7 +36,7 @@ const BodyProblems = preload("res://addons/mesh_tools/scripts/body_problems.gd")
 ## [br]    Takes [param mesh] and [param float] and performs a shade auto-smooth operation, like Blender.
 const MeshEffects = preload("res://addons/mesh_tools/scripts/mesh_effects.gd")
 
-
 ## MeshDestruction has the methods:
-## TODO
+## [br]slice_mesh
+## [br]    It takes a [param MeshInstance3D] with a [param PlaneMesh] that does the cutting, a recieving [param mesh], and an optional [param StandardMaterial3D].
 const MeshDestruction = preload("res://addons/mesh_tools/scripts/mesh_destruction.gd")
