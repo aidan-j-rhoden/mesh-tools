@@ -1,6 +1,5 @@
 extends Node
 
-
 static func regenerate_normals(mesh: Mesh, flip: bool = false) -> Mesh:
 	var tool: SurfaceTool = SurfaceTool.new()
 	tool.create_from(mesh, 0)
