@@ -7,7 +7,7 @@ static func slice_mesh(
 	target_mesh: Mesh,
 	cut_material: Material = null
 ) -> Array:
-	# ---- Build a Transform3D whose +Z axis is the cutting-plane normal ----
+	# Build a Transform3D whose +Z axis is the cutting-plane normal
 	var normal: Vector3 = _get_plane_normal(plane_mi)
 	var origin: Vector3 = plane_mi.transform.origin
 
@@ -23,7 +23,7 @@ static func slice_mesh(
 	return _slice_with_csg(slice_transform, target_mesh, cut_material)
 
 
-static func check_penetration(slicing_plane: MeshInstance3D, target: MeshInstance3D) -> bool:
+static func check_penetration(slicing_plane: MeshInstance3D, target: MeshInstance3D) -> bool: # Check if the slicing plane fully bisects the target, or only partially does.
 	var target_mesh = target.mesh
 	var triangle_mesh: TriangleMesh = target_mesh.generate_triangle_mesh()
 	var plane_mesh := slicing_plane.mesh as PlaneMesh
@@ -31,8 +31,8 @@ static func check_penetration(slicing_plane: MeshInstance3D, target: MeshInstanc
 	var all_segments = _get_plane_segments(local_corners)
 
 	var segments: Array = [
-		all_segments.slice(0, 4),  # edges
-		all_segments.slice(4, 6)   # diagonals
+		all_segments.slice(0, 4), # edges
+		all_segments.slice(4, 6)  # diagonals
 	]
 
 	var plane_xform := slicing_plane.global_transform
@@ -40,29 +40,22 @@ static func check_penetration(slicing_plane: MeshInstance3D, target: MeshInstanc
 
 	# Check the edges
 	for segment in segments[0]:
-		# 1. Plane local → Global
 		var from_global = plane_xform * segment[0]
 		var to_global = plane_xform * segment[1]
-		# Global <- Target local
 		var from_local = target_inv * from_global
 		var to_local = target_inv * to_global
-		# Now both arguments are Vector3
 		var result := triangle_mesh.intersect_segment(from_local, to_local)
 		if not result.is_empty():  # If a edge hit, it isn't bounding the object. (if a single exterior edge is going through the interior target, it's impossibe that it is encompassing)
 			var hit_global = target.global_transform * result.position
 			print("Hit at global: ", hit_global)
 			return false
-
 	# Check the diagonals
 	var hit: bool = false
 	for segment in segments[1]:
-		# Plane local -> Global
 		var from_global = plane_xform * segment[0]
 		var to_global = plane_xform * segment[1]
-		# Global <- Target local
 		var from_local = target_inv * from_global
 		var to_local = target_inv * to_global
-		# Now both arguments are Vector3
 		var result := triangle_mesh.intersect_segment(from_local, to_local)
 		if not result.is_empty():  # If a diagonal doesn't hit, we missed. dayum what a shocker it's way past my bedtime btw
 			var hit_global = target.global_transform * result.position
@@ -82,24 +75,24 @@ static func _get_plane_corners(plane_mesh: PlaneMesh) -> PackedVector3Array:
 	# Default FACE_Y orientation (most common)
 	# Change the axes if you use FACE_X or FACE_Z
 	return PackedVector3Array([
-		Vector3( half.x, 0.0,  half.y) + offset,  # 0: +X +Z
-		Vector3(-half.x, 0.0,  half.y) + offset,  # 1: -X +Z
-		Vector3(-half.x, 0.0, -half.y) + offset,  # 2: -X -Z
-		Vector3( half.x, 0.0, -half.y) + offset,  # 3: +X -Z
+		Vector3( half.x, 0.0,  half.y) + offset, # 0: +X +Z
+		Vector3(-half.x, 0.0,  half.y) + offset, # 1: -X +Z
+		Vector3(-half.x, 0.0, -half.y) + offset, # 2: -X -Z
+		Vector3( half.x, 0.0, -half.y) + offset, # 3: +X -Z
 	])
 
 
-# Returns the 6 segments: 4 edges + 2 diagonals
+## Returns the 6 segments from a quad: 4 edges + 2 diagonals
 static func _get_plane_segments(corners: PackedVector3Array) -> Array:
 	return [
 		# Edges
-		[corners[0], corners[1]],  # top
-		[corners[1], corners[2]],  # left
-		[corners[2], corners[3]],  # bottom
-		[corners[3], corners[0]],  # right
+		[corners[0], corners[1]], # top
+		[corners[1], corners[2]], # left
+		[corners[2], corners[3]], # bottom
+		[corners[3], corners[0]], # right
 		# Diagonals
-		[corners[0], corners[2]],  # main
-		[corners[1], corners[3]],  # anti
+		[corners[0], corners[2]], # main
+		[corners[1], corners[3]], # anti
 	]
 
 
