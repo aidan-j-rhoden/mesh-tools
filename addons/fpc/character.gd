@@ -135,6 +135,9 @@ var gravity : float = ProjectSettings.get_setting("physics/3d/default_gravity") 
 # Stores mouse input for rotating the camera in the physics process
 var mouseInput : Vector2 = Vector2(0,0)
 
+
+var melt_material: ShaderMaterial = ShaderMaterial.new()
+
 #endregion
 
 
@@ -158,6 +161,52 @@ func _ready():
 	
 	if OS.get_name() == "Web":
 		Input.set_use_accumulated_input(false)
+
+	melt_material.shader = preload("res://example_scene/melted_metal.gdshader")
+	melt_material.set_shader_parameter("roughness", 0.7)
+	melt_material.set_shader_parameter("noise_scale", 5.0)
+	melt_material.set_shader_parameter("flow_speed", 0.0)
+	melt_material.set_shader_parameter("fresnel_power", 6.0)
+	melt_material.set_shader_parameter("edge_glow_strength", 10.0)
+	melt_material.set_shader_parameter("vein_threshold", 0.377)
+	melt_material.set_shader_parameter("vein_glow_strength", 5.2)
+	melt_material.set_shader_parameter("pulse_speed", 2.0)
+	melt_material.set_shader_parameter("vein_pulse_amplitude", 0.05)
+	melt_material.set_shader_parameter("vein_pulse_frequency", 0.25)
+	melt_material.set_shader_parameter("displacement", 0.0)
+
+
+func _input(event: InputEvent) -> void:
+	if Input.is_action_just_pressed("fire") and $Head/RayCast3D/TheGiver.visible:
+		var target = $Head/RayCast3D.get_collider()
+		var mesh
+		for child in target.get_children():
+			if child is MeshInstance3D:
+				mesh = child
+				break
+		if not mesh:
+			return
+		if target is RigidBody3D:
+			var slicer = $Head/RayCast3D/TheGiver.duplicate()
+			target.add_child(slicer)
+			slicer.global_transform = $Head/RayCast3D/TheGiver.global_transform
+			if MeshTools.MeshDestruction.check_penetration(slicer, mesh) or true:
+				print("Slicing...")
+				var cuts: Array = MeshTools.MeshDestruction.slice_mesh(slicer, mesh.mesh, melt_material)
+				for part in cuts:
+					var piece: RigidBody3D = MeshTools.BodyProblems.create_rigid_body_from_mesh(part, 0.9)
+					MeshTools.BodyProblems.set_center_of_mass(piece, true)
+					var mass = MeshTools.Islands.calculate_mesh_volume(part) * 15.0
+					if mass <= 0.5:
+						continue
+					piece.mass = mass
+					get_tree().root.add_child(piece)
+					piece.global_transform = target.global_transform
+				target.queue_free()
+			else:
+				print("Cut not deep enough")
+			slicer.queue_free()
+		$Head/RayCast3D/TheGiver.visible = false
 
 
 func _process(_delta):
@@ -267,6 +316,12 @@ func handle_head_rotation():
 
 	mouseInput = Vector2(0,0)
 	HEAD.rotation.x = clamp(HEAD.rotation.x, deg_to_rad(-90), deg_to_rad(90))
+	
+	if Input.is_action_pressed("aim") and $Head/RayCast3D.is_colliding():
+		$Head/RayCast3D/TheGiver.visible = true
+		$Head/RayCast3D/TheGiver.global_position = $Head/RayCast3D.get_collision_point()
+	else:
+		$Head/RayCast3D/TheGiver.visible = false
 
 
 func check_controls(): # If you add a control, you might want to add a check for it here.
