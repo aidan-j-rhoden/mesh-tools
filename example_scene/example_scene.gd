@@ -8,7 +8,7 @@ var melt_material: ShaderMaterial = ShaderMaterial.new()
 func _ready() -> void:
 	melt_material.shader = preload("res://example_scene/melted_metal.gdshader")
 	melt_material.set_shader_parameter("roughness", 0.7)
-	melt_material.set_shader_parameter("noise_scale", 50.0)
+	melt_material.set_shader_parameter("noise_scale", 5.0)
 	melt_material.set_shader_parameter("flow_speed", 0.0)
 	melt_material.set_shader_parameter("fresnel_power", 6.0)
 	melt_material.set_shader_parameter("edge_glow_strength", 10.0)
