@@ -27,6 +27,10 @@ uniform float vein_threshold     : hint_range(0.0, 1.0)  = 0.45;
 uniform float vein_glow_strength : hint_range(0.0, 10.0) = 2.0;
 uniform float pulse_speed        : hint_range(0.0, 10.0) = 2.0;
 
+// Threshold breathes on a sine wave so the veins grow and shrink over time.
+uniform float vein_pulse_amplitude : hint_range(0.0, 0.5)  = 0.1;   // how far it swings
+uniform float vein_pulse_frequency : hint_range(0.0, 10.0) = 1.0;   // how fast it swings
+
 // ---- Optional geometric wobble (subtle "liquid" motion) ------------------
 uniform float displacement : hint_range(0.0, 0.5) = 0.03;
 
@@ -93,7 +97,12 @@ void fragment() {
 	ROUGHNESS = clamp(roughness - n * 0.25, 0.0, 1.0);
 
 	// --- Glowing veins sitting in the low pockets of the noise ---
-	float veins = 1.0 - smoothstep(vein_threshold, vein_threshold + 0.18, n);
+	// Threshold pulses on a sine wave: raising it exposes more low pockets
+	// (veins grow), lowering it hides them (veins shrink).
+	float pulsed_threshold = vein_threshold
+		+ sin(TIME * vein_pulse_frequency) * vein_pulse_amplitude;
+	pulsed_threshold = clamp(pulsed_threshold, 0.0, 1.0);
+	float veins = 1.0 - smoothstep(pulsed_threshold, pulsed_threshold + 0.18, n);
 	veins *= 0.7 + 0.3 * sin(TIME * pulse_speed + n * 12.0);   // slow pulse
 
 	// --- Hot fresnel rim: every silhouette edge burns ---

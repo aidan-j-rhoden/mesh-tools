@@ -7,7 +7,7 @@ var melt_material: ShaderMaterial = ShaderMaterial.new()
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	melt_material.shader = preload("res://example_scene/melted_metal.gdshader")
-	melt_material.set_shader_parameter("roughness", 0.5)
+	melt_material.set_shader_parameter("roughness", 0.7)
 	melt_material.set_shader_parameter("noise_scale", 50.0)
 	melt_material.set_shader_parameter("flow_speed", 0.0)
 	melt_material.set_shader_parameter("fresnel_power", 6.0)
@@ -15,6 +15,8 @@ func _ready() -> void:
 	melt_material.set_shader_parameter("vein_threshold", 0.377)
 	melt_material.set_shader_parameter("vein_glow_strength", 5.2)
 	melt_material.set_shader_parameter("pulse_speed", 2.0)
+	melt_material.set_shader_parameter("vein_pulse_amplitude", 0.05)
+	melt_material.set_shader_parameter("vein_pulse_frequency", 0.25)
 	melt_material.set_shader_parameter("displacement", 0.0)
  
 	if player_transform != null:
