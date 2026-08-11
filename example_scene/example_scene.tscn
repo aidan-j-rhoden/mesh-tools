@@ -58,6 +58,9 @@ size = Vector2(4, 7)
 material = ExtResource("5_a0aql")
 size = Vector2(2, 4)
 
+[sub_resource type="PlaneMesh" id="PlaneMesh_mkwnb"]
+material = ExtResource("5_a0aql")
+
 [node name="TestScene" type="Node3D" unique_id=1026301715]
 script = ExtResource("1_vqley")
 
@@ -4729,3 +4732,7 @@ mesh = SubResource("PlaneMesh_og868")
 [node name="TheUndersizedButVeryAveragelySizedGiver" type="MeshInstance3D" parent="ThisOneGetsIt" unique_id=1946011220]
 transform = Transform3D(0.781623, 0.4410587, -0.4410587, 0, 0.7071067, 0.7071067, 0.62375116, -0.55269086, 0.55269086, -0.6999998, 1.4000001, -1.0999999)
 mesh = SubResource("PlaneMesh_a0aql")
+
+[node name="ForeignerBias" type="MeshInstance3D" parent="ThisOneGetsIt" unique_id=253944789]
+transform = Transform3D(0.781623, 0.4410587, -0.4410587, 0, 0.7071067, 0.7071067, 0.62375116, -0.55269086, 0.55269086, 1.2000008, 2.9, -1.1999998)
+mesh = SubResource("PlaneMesh_mkwnb")

@@ -82,6 +82,8 @@ func the_test() -> void:
 	if not MeshTools.MeshDestruction.check_penetration($ThisOneGetsIt/TheGiver, $ThisOneGetsIt):
 		OS.alert("Inadequate size detected for the task at hand.\nTerminating inadequate size.", "SPS (small Process Shutdown) alert")
 		OS.crash("Inadequate size removed.") # See, no performance issues here.  This gets the job done.  That's how confidant I am in $TheGiver (and inversely confidant in myself)
+	if not MeshTools.MeshDestruction.check_penetration($ThisOneGetsIt/ForeignerBias, $ThisOneGetsIt):
+		$ThisOneGetsIt/ForeignerBias.queue_free() # How strange
 
 	var cuts: Array = MeshTools.MeshDestruction.slice_mesh($ThisOneGetsIt/TheGiver, $ThisOneGetsIt.mesh, melt_material)
 	$ThisOneGetsIt.mesh = cuts[0]

@@ -187,25 +187,25 @@ func _input(event: InputEvent) -> void:
 		if not mesh:
 			return
 		if target is RigidBody3D:
-			var slicer = $Head/RayCast3D/TheGiver.duplicate()
+			var slicer = $Head/RayCast3D/TheGiver.duplicate(0)
 			target.add_child(slicer)
 			slicer.global_transform = $Head/RayCast3D/TheGiver.global_transform
-			if MeshTools.MeshDestruction.check_penetration(slicer, mesh) or true:
+			if MeshTools.MeshDestruction.check_penetration(slicer, mesh):
 				print("Slicing...")
 				var cuts: Array = MeshTools.MeshDestruction.slice_mesh(slicer, mesh.mesh, melt_material)
 				for part in cuts:
 					var piece: RigidBody3D = MeshTools.BodyProblems.create_rigid_body_from_mesh(part, 0.9)
 					MeshTools.BodyProblems.set_center_of_mass(piece, true)
 					var mass = MeshTools.Islands.calculate_mesh_volume(part) * 15.0
-					if mass <= 0.5:
+					if mass <= 0.25:
 						continue
 					piece.mass = mass
-					get_tree().root.add_child(piece)
+					get_node("/root/TestScene").add_child(piece)
 					piece.global_transform = target.global_transform
 				target.queue_free()
 			else:
 				print("Cut not deep enough")
-			slicer.queue_free()
+				slicer.queue_free()
 		$Head/RayCast3D/TheGiver.visible = false
 
 

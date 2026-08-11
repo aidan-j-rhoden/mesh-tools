@@ -25,7 +25,7 @@ static func slice_mesh(
 
 static func check_penetration(slicing_plane: MeshInstance3D, target: MeshInstance3D) -> bool: # Check if the slicing plane fully bisects the target, or only partially does.
 	var target_mesh = target.mesh
-	var triangle_mesh: TriangleMesh = target_mesh.generate_triangle_mesh()
+	var triangle_mesh: TriangleMesh = target_mesh.generate_triangle_mesh() # Expensive
 	var plane_mesh := slicing_plane.mesh as PlaneMesh
 	var local_corners := _get_plane_corners(plane_mesh)
 	var all_segments = _get_plane_segments(local_corners)
@@ -49,21 +49,21 @@ static func check_penetration(slicing_plane: MeshInstance3D, target: MeshInstanc
 			var hit_global = target.global_transform * result.position
 			print("Hit at global: ", hit_global)
 			return false
-	# Check the diagonals
-	var hit: bool = false
-	for segment in segments[1]:
-		var from_global = plane_xform * segment[0]
-		var to_global = plane_xform * segment[1]
-		var from_local = target_inv * from_global
-		var to_local = target_inv * to_global
-		var result := triangle_mesh.intersect_segment(from_local, to_local)
-		if not result.is_empty():  # If a diagonal doesn't hit, we missed. dayum what a shocker it's way past my bedtime btw
-			var hit_global = target.global_transform * result.position
-			print("Hit at global: ", hit_global)
-			hit = true
-			break
-	if not hit:  # we failed to hit, end it all. deodorant and a shower may help next time
-		return false
+	# Check the diagonals *edit yk what screw you we're not going to check the diagonals.  We don't even need to do this.  If you're (and you probably are) using raycasts to place these, we aLrEAdY kNOw THAT IT HIT.  That (and the below comments) is what I get for midnight coding.  Leaving this here for posteriety, like a scar of shame on a tree; only growing with time.
+	#var hit: bool = false
+	#for segment in segments[1]:
+		#var from_global = plane_xform * segment[0]
+		#var to_global = plane_xform * segment[1]
+		#var from_local = target_inv * from_global
+		#var to_local = target_inv * to_global
+		#var result := triangle_mesh.intersect_segment(from_local, to_local)
+		#if not result.is_empty():  # If a diagonal doesn't hit, we missed. dayum what a shocker it's way past my bedtime btw
+			#var hit_global = target.global_transform * result.position
+			#print("Hit at global: ", hit_global)
+			#hit = true
+			#break
+	#if not hit:  # we failed to hit, end it all. deodorant and a shower may help next time
+		#return false
 
 	return true
 
