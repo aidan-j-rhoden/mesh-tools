@@ -1,7 +1,13 @@
 extends Node3D
 
+static var player_transform = null
+static var camera_rotation = null
+
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	if player_transform != null:
+		$Character.transform = player_transform
+		$Character/Head.rotation = camera_rotation
 	the_test()
 
 
@@ -55,4 +61,6 @@ func _input(_event: InputEvent) -> void:
 	if Input.is_action_just_pressed("quit"):
 		get_tree().quit()
 	if Input.is_action_just_pressed("restart"):
+		player_transform = $Character.transform
+		camera_rotation = $Character/Head.rotation
 		get_tree().reload_current_scene()
