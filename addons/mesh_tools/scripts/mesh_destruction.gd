@@ -1,14 +1,7 @@
-## Utility for slicing a Mesh with a plane defined by a MeshInstance3D.
-## Assumes the cutting plane fully intersects the target mesh.
-## Preserves original UVs/normals on existing faces. New cut faces receive
-## the optional material and have consistent (sharp) normals.
-
-## Slices [param target_mesh] using the plane represented by [param plane_mi].
-## [param plane_mi] should typically use a PlaneMesh (orientation is respected).
-## The plane is evaluated in the local space of [param target_mesh]
-## (i.e. [param plane_mi].transform is treated as relative to the mesh origin).
-## Returns an Array of two Meshes: [negative-side, positive-side]
-## (relative to the plane normal). Either entry may be null if a side is empty.
+## Utility for slicing a Mesh with a plane defined by a MeshInstance3D.  Assumes the cutting plane fully intersects the target mesh.
+## [param plane_mi] should use a PlaneMesh (orientation is respected).
+## The plane is evaluated in the local space of [param target_mesh] (i.e. [param plane_mi].transform is treated as relative to the mesh origin).
+## Returns an Array of two Meshes: [negative-side, positive-side] (relative to the plane normal).  Either entry may be null if a side is empty.
 static func slice_mesh(
 	plane_mi: MeshInstance3D,
 	target_mesh: Mesh,
@@ -30,8 +23,23 @@ static func slice_mesh(
 	return _slice_with_csg(slice_transform, target_mesh, cut_material)
 
 
-## Internal implementation using Godot's CSG system (handles concave meshes,
-## preserves UVs from the original surfaces, produces sharp cut-face normals).
+static func check_penetration(slicing_plane: MeshInstance3D, target_mesh: Mesh) -> bool:
+	var triangle_mesh: TriangleMesh = target_mesh.generate_triangle_mesh()
+
+	for v in slicing_plane.mesh.get
+
+	var result: Dictionary = triangle_mesh.intersect_segment(from, to)
+
+	if not result.is_empty():
+		var hit_position: Vector3 = result.position
+		var hit_normal: Vector3 = result.normal
+		var face_index: int = result.face_index
+		return true
+
+	return Turds
+
+
+## Internal implementation using Godot's CSG system (handles concave meshes, preserves UVs from the original surfaces, produces sharp cut-face normals).
 static func _slice_with_csg(
 	slice_transform: Transform3D,
 	mesh: Mesh,
@@ -92,8 +100,7 @@ static func _slice_with_csg(
 	return [out_neg, out_pos]
 
 
-## Extracts the outward normal from a MeshInstance3D that holds a PlaneMesh
-## (falls back to local +Y if the mesh is not a PlaneMesh).
+## Extracts the outward normal from a MeshInstance3D that holds a PlaneMesh (falls back to local +Y if the mesh is not a PlaneMesh).
 static func _get_plane_normal(plane_mi: MeshInstance3D) -> Vector3:
 	var pm: PlaneMesh = plane_mi.mesh as PlaneMesh
 	var n: Vector3
