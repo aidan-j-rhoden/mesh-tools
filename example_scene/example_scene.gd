@@ -2,10 +2,22 @@ extends Node3D
 
 static var player_transform = null
 static var camera_rotation = null
+var melt_material: ShaderMaterial = ShaderMaterial.new()
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	if player_transform != null:
+  melt_material.shader = preload("res://example_scene/melted_metal.gdshader")
+  melt_material.set_shader_parameter("roughness", 0.5)
+	melt_material.set_shader_parameter("noise_scale", 50.0)
+	melt_material.set_shader_parameter("flow_speed", 0.0)
+	melt_material.set_shader_parameter("fresnel_power", 6.0)
+	melt_material.set_shader_parameter("edge_glow_strength", 10.0)
+	melt_material.set_shader_parameter("vein_threshold", 0.377)
+	melt_material.set_shader_parameter("vein_glow_strength", 5.2)
+	melt_material.set_shader_parameter("pulse_speed", 2.0)
+	melt_material.set_shader_parameter("displacement", 0.0)
+ 
+  if player_transform != null:
 		$Character.transform = player_transform
 		$Character/Head.rotation = camera_rotation
 	the_test()
@@ -55,6 +67,28 @@ func the_test() -> void:
 	var new_thing: CSGMesh3D = MeshTools.BodyProblems.create_csg_body_from_mesh(new_mesh, true)
 	add_child(new_thing)
 	new_thing.position = $RigidBody3D.position
+
+	# Thickness tests
+	await MeshTools.CleanUp.rebuild_csg_node($CSGBox3D3)
+	$CSGBox3D3.mesh = await ThreadRunner.run_async(MeshTools.CleanUp.merge_by_distance, [$CSGBox3D3.mesh, 0.01])
+	$CSGBox3D3.mesh = MeshTools.MeshEffects.shade_smooth_by_angle($CSGBox3D3.mesh, 35.0)
+	# TODO structure check here
+
+	# Slicing checks
+	if not MeshTools.MeshDestruction.check_penetration($ThisOneGetsIt/TheUndersizedButVeryAveragelySizedGiver, $ThisOneGetsIt):
+		$ThisOneGetsIt/TheUndersizedButVeryAveragelySizedGiver.queue_free() # It's just too small for the job, sorry king size does matter 😭
+
+	var cuts: Array = MeshTools.MeshDestruction.slice_mesh($ThisOneGetsIt/TheGiver, $ThisOneGetsIt.mesh, melt_material)
+	$ThisOneGetsIt.mesh = cuts[0]
+	var base: StaticBody3D = MeshTools.BodyProblems.create_static_body_from_mesh(cuts[0], 0.7, 0.0, MeshTools.BodyProblems.CollisionType.CONVEX)
+	base.collision_layer = 0b11 # This is just for this specific player controller system, not super important.
+	$ThisOneGetsIt.add_child(base)
+	var part: RigidBody3D = MeshTools.BodyProblems.create_rigid_body_from_mesh(cuts[1], 0.9)
+	MeshTools.BodyProblems.set_center_of_mass(part, true)
+	part.mass = 2000.0
+	$ThisOneGetsIt.add_child(part)
+	$ThisOneGetsIt.mesh = null # Clear the original mesh
+	$ThisOneGetsIt/TheGiver.queue_free()
 
 
 func _input(_event: InputEvent) -> void:

@@ -4,6 +4,13 @@
 [ext_resource type="Material" uid="uid://c146h5iyhkri6" path="res://example_scene/new_standard_material_3d.tres" id="2_71y1r"]
 [ext_resource type="PackedScene" uid="uid://cc1m2a1obsyn4" path="res://addons/fpc/character.tscn" id="3_cxdiq"]
 [ext_resource type="Material" uid="uid://djlicrs86wtjb" path="res://example_scene/new_standard_material_3d_other_one.tres" id="4_jnonn"]
+[ext_resource type="Material" uid="uid://5bqag183wsat" path="res://example_scene/red_cut.tres" id="5_a0aql"]
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_vqley"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_vqley"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_71y1r"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ia1lp"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -39,11 +46,17 @@ bounce = 0.8
 
 [sub_resource type="SphereMesh" id="SphereMesh_2nij2"]
 
-[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_vqley"]
+[sub_resource type="BoxMesh" id="BoxMesh_gualv"]
+material = ExtResource("4_jnonn")
+size = Vector3(3, 6, 3)
 
-[sub_resource type="BoxMesh" id="BoxMesh_vqley"]
+[sub_resource type="PlaneMesh" id="PlaneMesh_og868"]
+material = ExtResource("5_a0aql")
+size = Vector2(4, 7)
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_71y1r"]
+[sub_resource type="PlaneMesh" id="PlaneMesh_a0aql"]
+material = ExtResource("5_a0aql")
+size = Vector2(2, 4)
 
 [node name="TestScene" type="Node3D" unique_id=1026301715]
 script = ExtResource("1_vqley")
@@ -51,6 +64,17 @@ script = ExtResource("1_vqley")
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=771573233]
 transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 0, 0, 0)
 shadow_enabled = true
+
+[node name="StaticBody3D" type="StaticBody3D" parent="." unique_id=1978154652]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.2, 0.5, -4.1)
+collision_layer = 3
+physics_material_override = SubResource("PhysicsMaterial_vqley")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="StaticBody3D" unique_id=1702424457]
+mesh = SubResource("BoxMesh_vqley")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D" unique_id=1270968739]
+shape = SubResource("BoxShape3D_71y1r")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1814287649]
 environment = SubResource("Environment_coq8p")
@@ -4674,13 +4698,34 @@ use_collision = true
 collision_layer = 3
 size = Vector3(45, 7, 45)
 
-[node name="StaticBody3D" type="StaticBody3D" parent="." unique_id=1978154652]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.2, 0.5, -4.1)
-collision_layer = 3
-physics_material_override = SubResource("PhysicsMaterial_vqley")
+[node name="CSGBox3D3" type="CSGBox3D" parent="." unique_id=1833441760]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 1.5, 10)
+size = Vector3(2, 3, 2)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="StaticBody3D" unique_id=1702424457]
-mesh = SubResource("BoxMesh_vqley")
+[node name="CSGBox3D5" type="CSGBox3D" parent="CSGBox3D3" unique_id=1159908772]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.1, 0)
+size = Vector3(2, 3, 2)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D" unique_id=1270968739]
-shape = SubResource("BoxShape3D_71y1r")
+[node name="CSGBox3D6" type="CSGBox3D" parent="CSGBox3D3" unique_id=717523703]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.1, 0)
+size = Vector3(0.82714844, 3, 0.83496094)
+
+[node name="CSGTorus3D" type="CSGTorus3D" parent="CSGBox3D3" unique_id=1263779038]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.1, 0)
+operation = 2
+inner_radius = 0.05450572
+outer_radius = 0.7487749
+sides = 29
+ring_sides = 27
+
+[node name="ThisOneGetsIt" type="MeshInstance3D" parent="." unique_id=4423121]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.3, 3, 4)
+mesh = SubResource("BoxMesh_gualv")
+
+[node name="TheGiver" type="MeshInstance3D" parent="ThisOneGetsIt" unique_id=1141250864]
+transform = Transform3D(0.9659258, -0.1830127, 0.1830127, 0, 0.70710677, 0.70710677, -0.25881904, -0.68301266, 0.68301266, 0, 0, 0)
+mesh = SubResource("PlaneMesh_og868")
+
+[node name="TheUndersizedButVeryAveragelySizedGiver" type="MeshInstance3D" parent="ThisOneGetsIt" unique_id=1946011220]
+transform = Transform3D(0.781623, 0.4410587, -0.4410587, 0, 0.7071067, 0.7071067, 0.62375116, -0.55269086, 0.55269086, -0.6999998, 1.4000001, -1.0999999)
+mesh = SubResource("PlaneMesh_a0aql")
