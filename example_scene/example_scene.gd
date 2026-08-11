@@ -64,16 +64,14 @@ func the_test() -> void:
 	var new_thing: CSGMesh3D = MeshTools.BodyProblems.create_csg_body_from_mesh(new_mesh, true)
 	add_child(new_thing)
 	new_thing.position = $RigidBody3D.position
-	
-	await get_tree().create_timer(2).timeout
 
+	# Thickness tests
 	await MeshTools.CleanUp.rebuild_csg_node($CSGBox3D3)
 	$CSGBox3D3.mesh = await ThreadRunner.run_async(MeshTools.CleanUp.merge_by_distance, [$CSGBox3D3.mesh, 0.01])
 	$CSGBox3D3.mesh = MeshTools.MeshEffects.shade_smooth_by_angle($CSGBox3D3.mesh, 35.0)
-
 	# TODO structure check here
 
-
+	# Slicing checks
 	var cuts: Array = MeshTools.MeshDestruction.slice_mesh($ThisOneGetsIt/TheGiver, $ThisOneGetsIt.mesh, melt_material)
 	$ThisOneGetsIt.mesh = cuts[0]
 	var base = MeshTools.BodyProblems.create_static_body_from_mesh(cuts[0], 0.7, 0.0, MeshTools.BodyProblems.CollisionType.CONVEX)
