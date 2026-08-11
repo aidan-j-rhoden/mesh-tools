@@ -77,6 +77,9 @@ func the_test() -> void:
 	# Slicing checks
 	if not MeshTools.MeshDestruction.check_penetration($ThisOneGetsIt/TheUndersizedButVeryAveragelySizedGiver, $ThisOneGetsIt):
 		$ThisOneGetsIt/TheUndersizedButVeryAveragelySizedGiver.queue_free() # It's just too small for the job, sorry king size does matter 😭
+	if not MeshTools.MeshDestruction.check_penetration($ThisOneGetsIt/TheGiver, $ThisOneGetsIt):
+		OS.alert("Inadequate size detected for the task at hand.\nTerminating inadequate size.", "SPS (small Process Shutdown) alert")
+		OS.crash("Inadequate size removed.") # See, no performance issues here.  This gets the job done.  That's how confidant I am in $TheGiver (and inversely confidant in myself)
 
 	var cuts: Array = MeshTools.MeshDestruction.slice_mesh($ThisOneGetsIt/TheGiver, $ThisOneGetsIt.mesh, melt_material)
 	$ThisOneGetsIt.mesh = cuts[0]
