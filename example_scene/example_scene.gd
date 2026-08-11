@@ -72,16 +72,19 @@ func the_test() -> void:
 	# TODO structure check here
 
 	# Slicing checks
+	if not MeshTools.MeshDestruction.check_penetration($ThisOneGetsIt/TheUndersizedButVeryAveragelySizedGiver, $ThisOneGetsIt):
+		$ThisOneGetsIt/TheUndersizedButVeryAveragelySizedGiver.queue_free() # It's just too small for the job, sorry king size does matter 😭
+
 	var cuts: Array = MeshTools.MeshDestruction.slice_mesh($ThisOneGetsIt/TheGiver, $ThisOneGetsIt.mesh, melt_material)
 	$ThisOneGetsIt.mesh = cuts[0]
-	var base = MeshTools.BodyProblems.create_static_body_from_mesh(cuts[0], 0.7, 0.0, MeshTools.BodyProblems.CollisionType.CONVEX)
-	base.collision_layer = 0b11
+	var base: StaticBody3D = MeshTools.BodyProblems.create_static_body_from_mesh(cuts[0], 0.7, 0.0, MeshTools.BodyProblems.CollisionType.CONVEX)
+	base.collision_layer = 0b11 # This is just for this specific player controller system, not super important.
 	$ThisOneGetsIt.add_child(base)
 	var part: RigidBody3D = MeshTools.BodyProblems.create_rigid_body_from_mesh(cuts[1], 0.9)
 	MeshTools.BodyProblems.set_center_of_mass(part, true)
 	part.mass = 2000.0
 	$ThisOneGetsIt.add_child(part)
-	$ThisOneGetsIt.mesh = null
+	$ThisOneGetsIt.mesh = null # Clear the original mesh
 	$ThisOneGetsIt/TheGiver.queue_free()
 
 

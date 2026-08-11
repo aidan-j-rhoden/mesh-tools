@@ -23,20 +23,84 @@ static func slice_mesh(
 	return _slice_with_csg(slice_transform, target_mesh, cut_material)
 
 
-static func check_penetration(slicing_plane: MeshInstance3D, target_mesh: Mesh) -> bool:
+static func check_penetration(slicing_plane: MeshInstance3D, target: MeshInstance3D) -> bool:
+	var target_mesh = target.mesh
 	var triangle_mesh: TriangleMesh = target_mesh.generate_triangle_mesh()
+	var plane_mesh := slicing_plane.mesh as PlaneMesh
+	var local_corners := _get_plane_corners(plane_mesh)
+	var all_segments = _get_plane_segments(local_corners)
 
-	for v in slicing_plane.mesh.get
+	var segments: Array = [
+		all_segments.slice(0, 4),  # edges
+		all_segments.slice(4, 6)   # diagonals
+	]
 
-	var result: Dictionary = triangle_mesh.intersect_segment(from, to)
+	var plane_xform := slicing_plane.global_transform
+	var target_inv := target.global_transform.affine_inverse()
 
-	if not result.is_empty():
-		var hit_position: Vector3 = result.position
-		var hit_normal: Vector3 = result.normal
-		var face_index: int = result.face_index
-		return true
+	# Check the edges
+	for segment in segments[0]:
+		# 1. Plane local → Global
+		var from_global = plane_xform * segment[0]
+		var to_global = plane_xform * segment[1]
+		# Global <- Target local
+		var from_local = target_inv * from_global
+		var to_local = target_inv * to_global
+		# Now both arguments are Vector3
+		var result := triangle_mesh.intersect_segment(from_local, to_local)
+		if not result.is_empty():  # If a edge hit, it isn't bounding the object. (if a single exterior edge is going through the interior target, it's impossibe that it is encompassing)
+			var hit_global = target.global_transform * result.position
+			print("Hit at global: ", hit_global)
+			return false
 
-	return Turds
+	# Check the diagonals
+	var hit: bool = false
+	for segment in segments[1]:
+		# Plane local -> Global
+		var from_global = plane_xform * segment[0]
+		var to_global = plane_xform * segment[1]
+		# Global <- Target local
+		var from_local = target_inv * from_global
+		var to_local = target_inv * to_global
+		# Now both arguments are Vector3
+		var result := triangle_mesh.intersect_segment(from_local, to_local)
+		if not result.is_empty():  # If a diagonal doesn't hit, we missed. dayum what a shocker it's way past my bedtime btw
+			var hit_global = target.global_transform * result.position
+			print("Hit at global: ", hit_global)
+			hit = true
+			break
+	if not hit:  # we failed to hit, end it all. deodorant and a shower may help next time
+		return false
+
+	return true
+
+
+static func _get_plane_corners(plane_mesh: PlaneMesh) -> PackedVector3Array:
+	var half := plane_mesh.size * 0.5
+	var offset := plane_mesh.center_offset
+
+	# Default FACE_Y orientation (most common)
+	# Change the axes if you use FACE_X or FACE_Z
+	return PackedVector3Array([
+		Vector3( half.x, 0.0,  half.y) + offset,  # 0: +X +Z
+		Vector3(-half.x, 0.0,  half.y) + offset,  # 1: -X +Z
+		Vector3(-half.x, 0.0, -half.y) + offset,  # 2: -X -Z
+		Vector3( half.x, 0.0, -half.y) + offset,  # 3: +X -Z
+	])
+
+
+# Returns the 6 segments: 4 edges + 2 diagonals
+static func _get_plane_segments(corners: PackedVector3Array) -> Array:
+	return [
+		# Edges
+		[corners[0], corners[1]],  # top
+		[corners[1], corners[2]],  # left
+		[corners[2], corners[3]],  # bottom
+		[corners[3], corners[0]],  # right
+		# Diagonals
+		[corners[0], corners[2]],  # main
+		[corners[1], corners[3]],  # anti
+	]
 
 
 ## Internal implementation using Godot's CSG system (handles concave meshes, preserves UVs from the original surfaces, produces sharp cut-face normals).
