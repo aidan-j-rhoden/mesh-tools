@@ -1,13 +1,13 @@
 extends Node3D
 
+static var player_transform = null
+static var camera_rotation = null
 var melt_material: ShaderMaterial = ShaderMaterial.new()
-
-
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	melt_material.shader = preload("res://example_scene/melted_metal.gdshader")
-	melt_material.set_shader_parameter("roughness", 0.5)
+  melt_material.shader = preload("res://example_scene/melted_metal.gdshader")
+  melt_material.set_shader_parameter("roughness", 0.5)
 	melt_material.set_shader_parameter("noise_scale", 50.0)
 	melt_material.set_shader_parameter("flow_speed", 0.0)
 	melt_material.set_shader_parameter("fresnel_power", 6.0)
@@ -16,7 +16,10 @@ func _ready() -> void:
 	melt_material.set_shader_parameter("vein_glow_strength", 5.2)
 	melt_material.set_shader_parameter("pulse_speed", 2.0)
 	melt_material.set_shader_parameter("displacement", 0.0)
-
+ 
+  if player_transform != null:
+		$Character.transform = player_transform
+		$Character/Head.rotation = camera_rotation
 	the_test()
 
 
@@ -92,4 +95,6 @@ func _input(_event: InputEvent) -> void:
 	if Input.is_action_just_pressed("quit"):
 		get_tree().quit()
 	if Input.is_action_just_pressed("restart"):
+		player_transform = $Character.transform
+		camera_rotation = $Character/Head.rotation
 		get_tree().reload_current_scene()
