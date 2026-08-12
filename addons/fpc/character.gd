@@ -201,6 +201,14 @@ func _input(event: InputEvent) -> void:
 						continue
 					piece.mass = mass
 					get_node("/root/TestScene").add_child(piece)
+					var partsmesh
+					for child in piece.get_children():
+						if child is MeshInstance3D:
+							partsmesh = child
+							break
+					partsmesh.set_script(load("res://example_scene/fadeshader.gd"))
+					partsmesh.target_material = load("res://example_scene/new_standard_material_3d_other_one.tres")
+					partsmesh.activate_fade()
 					piece.global_transform = target.global_transform
 				target.queue_free()
 			else:

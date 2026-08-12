@@ -2,13 +2,18 @@ shader_type spatial;
 render_mode blend_mix, cull_back, diffuse_burley, specular_schlick_ggx;
 
 // =========================================================================
-//  MELTED METAL  -  fully procedural, animated molten surface with a
-//  glowing hot rim on every edge and pulsing glowing veins inside.
+//  MELTED METAL  ->  FADE TO STANDARDMATERIAL3D
 //
-//  SEAMLESS VERSION: the pattern is driven by 3D object-space position
-//  instead of UVs, so it wraps cleanly around cylinders, spheres and any
-//  other mesh that has a UV seam. Cubes look identical to before.
-//  Godot 4.x  ->  attach to a ShaderMaterial and assign to any mesh.
+//  Starts as the fully procedural molten surface (glowing rim + pulsing
+//  veins). After a delay it cross-fades to the properties of a target
+//  StandardMaterial3D. During the fade the molten EMISSION drops to zero.
+//
+//  A shader can't read a StandardMaterial3D by itself, so the target's
+//  properties are mirrored as uniforms below. Use the companion
+//  MeltFader.gd script to copy them across and drive the timing, or set
+//  them by hand in the inspector.
+//
+//  Godot 4.x
 // =========================================================================
 
 // ---- Surface colours -----------------------------------------------------
@@ -39,6 +44,30 @@ uniform float vein_pulse_frequency : hint_range(0.0, 10.0) = 1.0;   // how fast 
 
 // ---- Optional geometric wobble (subtle "liquid" motion) ------------------
 uniform float displacement : hint_range(0.0, 0.5) = 0.03;
+
+// =========================================================================
+//  FADE TARGET  -  mirrors a StandardMaterial3D's core PBR properties.
+//  Copy these from the material you want to end up as (see MeltFader.gd).
+// =========================================================================
+uniform vec4      target_albedo : source_color = vec4(0.5, 0.5, 0.5, 1.0);
+uniform sampler2D target_albedo_tex : source_color, hint_default_white;
+uniform bool      target_use_albedo_tex = false;                    // set true if the target has an albedo texture
+uniform float     target_metallic  : hint_range(0.0, 1.0) = 0.0;
+uniform float     target_roughness : hint_range(0.0, 1.0) = 1.0;
+uniform vec4      target_emission : source_color = vec4(0.0, 0.0, 0.0, 1.0);
+uniform float     target_emission_energy : hint_range(0.0, 16.0) = 1.0;
+
+// ---- Fade control --------------------------------------------------------
+// auto_fade = true  : the shader times itself from TIME using the values below.
+//                     Good if the mesh exists from (near) program start.
+// auto_fade = false : you drive `fade` yourself (Tween / AnimationPlayer /
+//                     code). Deterministic and immune to TIME drift -> this is
+//                     what MeltFader.gd uses.
+uniform bool  auto_fade = false;
+uniform float fade : hint_range(0.0, 1.0) = 0.0;                      // manual 0..1 progress
+uniform float fade_start_time = 0.0;                                  // TIME anchor in seconds (set on spawn)
+uniform float fade_delay    : hint_range(0.0, 600.0) = 5.0;          // wait this long after the anchor...
+uniform float fade_duration : hint_range(0.01, 600.0) = 3.0;        // ...then fade over this long
 
 // Object-space position passed from vertex -> fragment so both stages sample
 // the exact same continuous coordinate. This is what kills the seam.
@@ -92,25 +121,37 @@ vec3 flow_pos(vec3 p) {
 	return p + warp * 0.5 + flow;
 }
 
+// 0.0 = pure molten metal, 1.0 = fully the target StandardMaterial3D.
+float fade_amount() {
+	if (!auto_fade) {
+		return clamp(fade, 0.0, 1.0);
+	}
+	return clamp((TIME - fade_start_time - fade_delay) / max(fade_duration, 0.0001), 0.0, 1.0);
+}
+
 // -------------------------------------------------------------------------
 void vertex() {
 	model_pos = VERTEX;   // in vertex(), VERTEX is model/object space
+	float fade_t = fade_amount();
 	if (displacement > 0.0) {
 		vec3 p = model_pos * noise_scale;
 		float d = fbm(flow_pos(p)) - 0.5;
-		VERTEX += NORMAL * d * displacement;   // gentle drifting ripples
+		// Wobble eases off as the surface "solidifies" into the target.
+		VERTEX += NORMAL * d * displacement * (1.0 - fade_t);
 	}
 }
 
 void fragment() {
+	float fade_t = fade_amount();
+
 	vec3 p  = model_pos * noise_scale;
 	vec3 cp = flow_pos(p);
 	float n = fbm(cp);
 
 	// --- Molten metal body ---
-	ALBEDO    = metal_color.rgb * (0.55 + 0.45 * n);
-	METALLIC  = metallic;
-	ROUGHNESS = clamp(roughness - n * 0.25, 0.0, 1.0);
+	vec3  molten_albedo    = metal_color.rgb * (0.55 + 0.45 * n);
+	float molten_metallic  = metallic;
+	float molten_roughness = clamp(roughness - n * 0.25, 0.0, 1.0);
 
 	// --- Glowing veins sitting in the low pockets of the noise ---
 	float pulsed_threshold = vein_threshold
@@ -122,5 +163,22 @@ void fragment() {
 	// --- Hot fresnel rim: every silhouette edge burns (already seamless) ---
 	float rim = fresnel(fresnel_power, NORMAL, VIEW);
 
-	EMISSION = hot_color.rgb * (rim * edge_glow_strength + veins * vein_glow_strength);
+	vec3 molten_emission = hot_color.rgb
+		* (rim * edge_glow_strength + veins * vein_glow_strength);
+
+	// --- Target StandardMaterial3D look ---
+	vec3 tgt_albedo = target_albedo.rgb;
+	if (target_use_albedo_tex) {
+		tgt_albedo *= texture(target_albedo_tex, UV).rgb;
+	}
+	vec3 tgt_emission = target_emission.rgb * target_emission_energy;
+
+	// --- Cross-fade the surface toward the target material ---
+	ALBEDO    = mix(molten_albedo,    tgt_albedo,       fade_t);
+	METALLIC  = mix(molten_metallic,  target_metallic,  fade_t);
+	ROUGHNESS = mix(molten_roughness, target_roughness, fade_t);
+
+	// Molten glow fades to zero as requested; the target's own emission
+	// (zero if it has none) fades in over the top.
+	EMISSION  = molten_emission * (1.0 - fade_t) + tgt_emission * fade_t;
 }

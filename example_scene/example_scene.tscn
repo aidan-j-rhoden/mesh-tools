@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" uid="uid://cc1m2a1obsyn4" path="res://addons/fpc/character.tscn" id="3_cxdiq"]
 [ext_resource type="Material" uid="uid://djlicrs86wtjb" path="res://example_scene/new_standard_material_3d_other_one.tres" id="4_jnonn"]
 [ext_resource type="Material" uid="uid://5bqag183wsat" path="res://example_scene/red_cut.tres" id="5_a0aql"]
+[ext_resource type="Script" uid="uid://cxln1r126t7nr" path="res://example_scene/fadeshader.gd" id="5_mkwnb"]
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_vqley"]
 
@@ -4724,6 +4725,8 @@ ring_sides = 27
 [node name="ThisOneGetsIt" type="MeshInstance3D" parent="." unique_id=4423121]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.3, 3, 4)
 mesh = SubResource("BoxMesh_gualv")
+script = ExtResource("5_mkwnb")
+target_material = ExtResource("4_jnonn")
 
 [node name="TheGiver" type="MeshInstance3D" parent="ThisOneGetsIt" unique_id=1141250864]
 transform = Transform3D(0.9659258, -0.1830127, 0.1830127, 0, 0.70710677, 0.70710677, -0.25881904, -0.68301266, 0.68301266, 0, 0, 0)

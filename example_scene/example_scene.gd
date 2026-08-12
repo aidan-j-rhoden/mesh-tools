@@ -88,12 +88,27 @@ func the_test() -> void:
 	var cuts: Array = MeshTools.MeshDestruction.slice_mesh($ThisOneGetsIt/TheGiver, $ThisOneGetsIt.mesh, melt_material)
 	$ThisOneGetsIt.mesh = cuts[0]
 	var base: StaticBody3D = MeshTools.BodyProblems.create_static_body_from_mesh(cuts[0], 0.7, 0.0, MeshTools.BodyProblems.CollisionType.CONVEX)
-	base.collision_layer = 0b11 # This is just for this specific player controller system, not super important.
+	base.collision_layer = 0b11 # This is just for this specific player controller system, not super important.constant_angular_velocity
 	$ThisOneGetsIt.add_child(base)
+	var partsmesh: MeshInstance3D
+	for child in base.get_children():
+		if child is MeshInstance3D:
+			partsmesh = child
+			break
+	partsmesh.set_script(load("res://example_scene/fadeshader.gd"))
+	partsmesh.target_material = load("res://example_scene/new_standard_material_3d_other_one.tres")
+	partsmesh.activate_fade()
 	var part: RigidBody3D = MeshTools.BodyProblems.create_rigid_body_from_mesh(cuts[1], 0.9)
 	MeshTools.BodyProblems.set_center_of_mass(part, true)
 	part.mass = 2000.0
 	$ThisOneGetsIt.add_child(part)
+	for child in part.get_children():
+		if child is MeshInstance3D:
+			partsmesh = child
+			break
+	partsmesh.set_script(load("res://example_scene/fadeshader.gd"))
+	partsmesh.target_material = load("res://example_scene/new_standard_material_3d_other_one.tres")
+	partsmesh.activate_fade()
 	$ThisOneGetsIt.mesh = null # Clear the original mesh
 	$ThisOneGetsIt/TheGiver.queue_free()
 
