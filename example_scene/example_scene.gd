@@ -3,6 +3,8 @@ extends Node3D
 static var player_transform = null
 static var camera_rotation = null
 var melt_material: ShaderMaterial = ShaderMaterial.new()
+var melt_script: Script = preload("res://example_scene/fadeshader.gd")
+var target_material: StandardMaterial3D = preload("res://example_scene/new_standard_material_3d_other_one.tres")
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -95,8 +97,8 @@ func the_test() -> void:
 		if child is MeshInstance3D:
 			partsmesh = child
 			break
-	partsmesh.set_script(load("res://example_scene/fadeshader.gd"))
-	partsmesh.target_material = load("res://example_scene/new_standard_material_3d_other_one.tres")
+	partsmesh.set_script(melt_script)
+	partsmesh.target_material = target_material
 	partsmesh.activate_fade()
 	var part: RigidBody3D = MeshTools.BodyProblems.create_rigid_body_from_mesh(cuts[1], 0.9)
 	MeshTools.BodyProblems.set_center_of_mass(part, true)
@@ -106,8 +108,8 @@ func the_test() -> void:
 		if child is MeshInstance3D:
 			partsmesh = child
 			break
-	partsmesh.set_script(load("res://example_scene/fadeshader.gd"))
-	partsmesh.target_material = load("res://example_scene/new_standard_material_3d_other_one.tres")
+	partsmesh.set_script(melt_script)
+	partsmesh.target_material = target_material
 	partsmesh.activate_fade()
 	$ThisOneGetsIt.mesh = null # Clear the original mesh
 	$ThisOneGetsIt/TheGiver.queue_free()

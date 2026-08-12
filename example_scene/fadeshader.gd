@@ -8,11 +8,11 @@ extends MeshInstance3D
 ## The material to end up as.
 @export var target_material: StandardMaterial3D
 ## Seconds to hold the molten look before fading.
-@export var fade_delay: float = 10.0
+@export var fade_delay: float = 3.0
 ## Seconds the cross-fade takes.
 @export var fade_duration: float = 10.0
 ## Give each instance its own material so they don't all fade together.
-@export var unique_material: bool = false # enableing this overwrites the entire mesh
+@export var unique_material: bool = true
 
 var _mat: ShaderMaterial
 
@@ -21,10 +21,9 @@ func activate_fade() -> void:
 	if _mat == null:
 		push_warning("MeltFader: no ShaderMaterial found on surface 1.")
 		return
-
 	if unique_material:
 		_mat = _mat.duplicate()
-		material_override = _mat
+		set_surface_override_material(1, _mat)
 
 	_copy_target_into_shader()
 

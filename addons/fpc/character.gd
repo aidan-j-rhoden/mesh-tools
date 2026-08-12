@@ -137,6 +137,8 @@ var mouseInput : Vector2 = Vector2(0,0)
 
 
 var melt_material: ShaderMaterial = ShaderMaterial.new()
+var melt_script = preload("res://example_scene/fadeshader.gd")
+var target_material = preload("res://example_scene/new_standard_material_3d_other_one.tres")
 
 #endregion
 
@@ -177,6 +179,12 @@ func _ready():
 
 
 func _input(event: InputEvent) -> void:
+	if event is InputEventMouseButton:
+		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
+			$Head/RayCast3D/TheGiver.rotate_z(0.05)
+		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+			$Head/RayCast3D/TheGiver.rotate_z(-0.05)
+
 	if Input.is_action_just_pressed("fire") and $Head/RayCast3D/TheGiver.visible:
 		var target = $Head/RayCast3D.get_collider()
 		var mesh
@@ -206,8 +214,8 @@ func _input(event: InputEvent) -> void:
 						if child is MeshInstance3D:
 							partsmesh = child
 							break
-					partsmesh.set_script(load("res://example_scene/fadeshader.gd"))
-					partsmesh.target_material = load("res://example_scene/new_standard_material_3d_other_one.tres")
+					partsmesh.set_script(melt_script)
+					partsmesh.target_material = target_material
 					partsmesh.activate_fade()
 					piece.global_transform = target.global_transform
 				target.queue_free()
