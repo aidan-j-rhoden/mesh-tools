@@ -98,8 +98,7 @@ func the_test() -> void:
 			partsmesh = child
 			break
 	partsmesh.set_script(melt_script)
-	partsmesh.target_material = target_material
-	partsmesh.activate_fade()
+	partsmesh.activate_fade(-1, target_material)
 	var part: RigidBody3D = MeshTools.BodyProblems.create_rigid_body_from_mesh(cuts[1], 0.9)
 	MeshTools.BodyProblems.set_center_of_mass(part, true)
 	part.mass = 2000.0
