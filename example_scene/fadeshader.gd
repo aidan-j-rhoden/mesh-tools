@@ -13,9 +13,9 @@ extends MeshInstance3D
 ## Default material to fade into (can be overridden per-surface).
 @export var target_material: StandardMaterial3D
 ## Seconds to hold the molten look before the cross-fade begins.
-@export var fade_delay: float = 3.0
+@export var fade_delay: float = 2.0
 ## Seconds the cross-fade takes.
-@export var fade_duration: float = 10.0
+@export var fade_duration: float = 8.0
 ## Force a unique ShaderMaterial instance so pieces don't share fade progress.
 @export var unique_material: bool = true
 
