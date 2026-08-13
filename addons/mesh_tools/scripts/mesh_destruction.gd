@@ -110,7 +110,7 @@ static func _slice_with_csg(
 
 	var slicer_csg: CSGMesh3D = CSGMesh3D.new()
 	var box: BoxMesh = BoxMesh.new()
-	box.material = cut_material
+	box.material = cut_material.duplicate()
 	slicer_csg.mesh = box
 
 	root.add_child(combiner)

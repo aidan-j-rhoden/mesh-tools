@@ -66,8 +66,8 @@ uniform float     target_emission_energy : hint_range(0.0, 16.0) = 1.0;
 uniform bool  auto_fade = false;
 uniform float fade : hint_range(0.0, 1.0) = 0.0;                      // manual 0..1 progress
 uniform float fade_start_time = 0.0;                                  // TIME anchor in seconds (set on spawn)
-uniform float fade_delay    : hint_range(0.0, 600.0) = 5.0;          // wait this long after the anchor...
-uniform float fade_duration : hint_range(0.01, 600.0) = 3.0;        // ...then fade over this long
+uniform float fade_delay    : hint_range(0.0, 600.0) = 3.0;          // wait this long after the anchor...
+uniform float fade_duration : hint_range(0.01, 600.0) = 10.0;        // ...then fade over this long
 
 // Object-space position passed from vertex -> fragment so both stages sample
 // the exact same continuous coordinate. This is what kills the seam.
