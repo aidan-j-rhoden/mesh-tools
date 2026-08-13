@@ -4726,7 +4726,6 @@ ring_sides = 27
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.3, 3, 4)
 mesh = SubResource("BoxMesh_gualv")
 script = ExtResource("5_mkwnb")
-target_material = ExtResource("4_jnonn")
 
 [node name="TheGiver" type="MeshInstance3D" parent="ThisOneGetsIt" unique_id=1141250864]
 transform = Transform3D(0.9659258, -0.1830127, 0.1830127, 0, 0.70710677, 0.70710677, -0.25881904, -0.68301266, 0.68301266, 0, 0, 0)

@@ -108,8 +108,7 @@ func the_test() -> void:
 			partsmesh = child
 			break
 	partsmesh.set_script(melt_script)
-	partsmesh.target_material = target_material
-	partsmesh.activate_fade()
+	partsmesh.activate_fade(-1, target_material)
 	$ThisOneGetsIt.mesh = null # Clear the original mesh
 	$ThisOneGetsIt/TheGiver.queue_free()
 

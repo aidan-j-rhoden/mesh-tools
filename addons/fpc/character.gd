@@ -198,8 +198,8 @@ func _input(event: InputEvent) -> void:
 			var slicer = $Head/RayCast3D/TheGiver.duplicate(0)
 			target.add_child(slicer)
 			var fade_state
-			if target.has_method("get_fade_state"):
-				fade_state = target.get_fade_state()
+			if mesh.has_method("get_fade_state"):
+				fade_state = mesh.get_fade_state()
 			slicer.global_transform = $Head/RayCast3D/TheGiver.global_transform
 			if MeshTools.MeshDestruction.check_penetration(slicer, mesh):
 				print("Slicing...")
@@ -221,6 +221,7 @@ func _input(event: InputEvent) -> void:
 					partsmesh.set_script(melt_script)
 					if fade_state:
 						partsmesh.apply_fade_state(fade_state)
+						print("thjis ranksa")
 					partsmesh.activate_fade(-1, target_material)
 				target.queue_free()
 			else:
