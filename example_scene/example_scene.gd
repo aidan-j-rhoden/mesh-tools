@@ -85,12 +85,12 @@ func the_test() -> void:
 		OS.alert("Inadequate size detected for the task at hand.\nTerminating inadequate size.", "SPS (small Process Shutdown) alert")
 		OS.crash("Inadequate size removed.") # See, no performance issues here.  This gets the job done.  That's how confidant I am in $TheGiver (and inversely confidant in myself)
 	if not MeshTools.MeshDestruction.check_penetration($ThisOneGetsIt/ForeignerBias, $ThisOneGetsIt):
-		$ThisOneGetsIt/ForeignerBias.queue_free() # How strange
+		$ThisOneGetsIt/ForeignerBias.queue_free() # How strange.  This one passes, despite being smaller.
 
 	var cuts: Array = MeshTools.MeshDestruction.slice_mesh($ThisOneGetsIt/TheGiver, $ThisOneGetsIt.mesh, melt_material)
 	$ThisOneGetsIt.mesh = cuts[0]
-	var base: StaticBody3D = MeshTools.BodyProblems.create_static_body_from_mesh(cuts[0], 0.7, 0.0, MeshTools.BodyProblems.CollisionType.CONVEX)
-	base.collision_layer = 0b11 # This is just for this specific player controller system, not super important.constant_angular_velocity
+	var base: StaticBody3D = MeshTools.BodyProblems.create_static_body_from_mesh(cuts[0], 0.7, 0.0, MeshTools.BodyProblems.CollisionType.CONVEX) # The lowest base will remain a static body.
+	base.collision_layer = 0b11 # This is just for this specific player controller system, not super important.
 	$ThisOneGetsIt.add_child(base)
 	var partsmesh: MeshInstance3D
 	for child in base.get_children():
@@ -99,18 +99,32 @@ func the_test() -> void:
 			break
 	partsmesh.set_script(melt_script)
 	partsmesh.activate_fade(-1, target_material)
-	var part: RigidBody3D = MeshTools.BodyProblems.create_rigid_body_from_mesh(cuts[1], 0.9)
-	MeshTools.BodyProblems.set_center_of_mass(part, true)
-	part.mass = 2000.0
-	$ThisOneGetsIt.add_child(part)
-	for child in part.get_children():
-		if child is MeshInstance3D:
-			partsmesh = child
-			break
-	partsmesh.set_script(melt_script)
-	partsmesh.activate_fade(-1, target_material)
-	$ThisOneGetsIt.mesh = null # Clear the original mesh
-	$ThisOneGetsIt/TheGiver.queue_free()
+
+	# The top half has another cut to perform.
+	var top_half: MeshInstance3D = MeshInstance3D.new()
+	top_half.mesh = cuts[1]
+	$ThisOneGetsIt.add_child(top_half)
+	top_half.set_script(melt_script)
+	top_half.activate_fade(-1, target_material)
+	var fade_state: Dictionary = top_half.get_fade_state()
+	var final_cuts: Array = MeshTools.MeshDestruction.slice_mesh($ThisOneGetsIt/ForeignerBias, top_half.mesh, melt_material)
+	for part: Mesh in final_cuts:
+		var piece: RigidBody3D = MeshTools.BodyProblems.create_rigid_body_from_mesh(part, 0.9)
+		MeshTools.BodyProblems.set_center_of_mass(piece, true)
+		piece.mass = 2000.0
+		$ThisOneGetsIt.add_child(piece)
+		for child in piece.get_children():
+			if child is MeshInstance3D:
+				partsmesh = child
+				break
+		partsmesh.set_script(melt_script)
+		partsmesh.apply_fade_state(fade_state)
+		partsmesh.activate_fade(-1, target_material)
+
+	$ThisOneGetsIt.mesh = null # Clear the original mesh.  We're leaving the object just for orginization, normally it would be queue_free()'d
+	top_half.queue_free()
+	$ThisOneGetsIt/TheGiver.queue_free() # The job is done, time to dip.
+	$ThisOneGetsIt/ForeignerBias.queue_free()
 
 
 func _input(_event: InputEvent) -> void:

@@ -77,7 +77,7 @@ func activate_fade(surface_idx: int = -1, p_target: StandardMaterial3D = null) -
 ## Snapshot that can be handed to the two children after a slice.
 func get_fade_state() -> Dictionary:
 	var state: Dictionary = {}
-	for surf in _active_fades:
+	for surf: int in _active_fades:
 		var info: Dictionary = _active_fades[surf]
 		state[surf] = {
 			"fade": info.fade,
@@ -93,7 +93,7 @@ func get_fade_state() -> Dictionary:
 func apply_fade_state(state: Dictionary) -> void:
 	if state.is_empty():
 		return
-	for surf in state:
+	for surf: int in state:
 		var s: Dictionary = state[surf]
 		var mat := get_active_material(surf) as ShaderMaterial
 		if mat == null:
@@ -128,7 +128,7 @@ func _process(delta: float) -> void:
 		return
 
 	var to_finish: Array[int] = []
-	for surf in _active_fades.keys():
+	for surf: int in _active_fades.keys():
 		# Safety: surface may have disappeared after an external mesh rebuild
 		if mesh == null or surf >= mesh.get_surface_count():
 			to_finish.append(surf)
@@ -237,7 +237,7 @@ func _merge_surfaces(indices: Array[int], mat: Material) -> void:
 
 	# Remap any still-active fades whose indices moved
 	var new_active: Dictionary = {}
-	for old_surf in _active_fades:
+	for old_surf: int in _active_fades:
 		if old_to_new.has(old_surf):
 			new_active[old_to_new[old_surf]] = _active_fades[old_surf]
 	_active_fades = new_active
@@ -279,7 +279,7 @@ func _combine_surface_arrays(arrays_list: Array) -> Array:
 				result[array_idx].clear()
 
 	var vertex_offset := 0
-	for arrs in arrays_list:
+	for arrs: Array in arrays_list:
 		var num_verts := 0
 		if arrs[Mesh.ARRAY_VERTEX] != null:
 			num_verts = arrs[Mesh.ARRAY_VERTEX].size()
