@@ -23,7 +23,8 @@ static func slice_mesh(
 	return _slice_with_csg(slice_transform, target_mesh, cut_material)
 
 
-static func check_penetration(slicing_plane: MeshInstance3D, target: MeshInstance3D) -> bool: # Check if the slicing plane fully bisects the target, or only partially does.
+## Check if the slicing plane fully bisects the target, or only partially does.[br]This is only useful if you want to limit any cuts to the area of your slicing mesh.  Otherwise, the slicer just checks the face angle and cuts along the infinate plane.
+static func check_penetration(slicing_plane: MeshInstance3D, target: MeshInstance3D) -> bool:
 	var target_mesh = target.mesh
 	var triangle_mesh: TriangleMesh = target_mesh.generate_triangle_mesh() # Expensive
 	var plane_mesh := slicing_plane.mesh as PlaneMesh
