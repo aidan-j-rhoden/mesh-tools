@@ -205,7 +205,7 @@ func _input(event: InputEvent) -> void:
 				print("Slicing...")
 				var cuts: Array = MeshTools.MeshDestruction.slice_mesh(slicer, mesh.mesh, melt_material)
 				for part in cuts:
-					var piece: RigidBody3D = MeshTools.BodyProblems.create_rigid_body_from_mesh(part, 0.9)
+					var piece: RigidBody3D = MeshTools.BodyProblems.create_rigid_body_from_mesh(part, 0.7)
 					MeshTools.BodyProblems.set_center_of_mass(piece, true)
 					var mass = MeshTools.Islands.calculate_mesh_volume(part) * 15.0
 					if mass <= 0.25:
@@ -221,7 +221,6 @@ func _input(event: InputEvent) -> void:
 					partsmesh.set_script(melt_script)
 					if fade_state:
 						partsmesh.apply_fade_state(fade_state)
-						print("thjis ranksa")
 					partsmesh.activate_fade(-1, target_material)
 				target.queue_free()
 			else:
