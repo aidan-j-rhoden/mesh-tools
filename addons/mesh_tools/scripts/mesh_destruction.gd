@@ -69,6 +69,7 @@ static func check_penetration(slicing_plane: MeshInstance3D, target: MeshInstanc
 	return true
 
 
+## Returns an array of the Vector3s for each corner of a plane.
 static func _get_plane_corners(plane_mesh: PlaneMesh) -> PackedVector3Array:
 	var half := plane_mesh.size * 0.5
 	var offset := plane_mesh.center_offset
