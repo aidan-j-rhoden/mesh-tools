@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://cc1m2a1obsyn4"]
 
 [ext_resource type="Script" uid="uid://hutuis63hgev" path="res://addons/fpc/character.gd" id="1_0t4e8"]
+[ext_resource type="Material" uid="uid://5bqag183wsat" path="res://example_scene/red_cut.tres" id="2_bx7cj"]
 [ext_resource type="Script" uid="uid://dgfl3skp075ft" path="res://addons/fpc/EditorModule.gd" id="3_v3ckk"]
 [ext_resource type="Script" uid="uid://u5u7xxlvmcxx" path="res://addons/fpc/debug.gd" id="3_x1wcc"]
 
@@ -384,6 +385,11 @@ height = 1.0
 radius = 0.1
 height = 0.50683594
 
+[sub_resource type="PlaneMesh" id="PlaneMesh_qaoyu"]
+material = ExtResource("2_bx7cj")
+size = Vector2(8, 10)
+center_offset = Vector3(0, 0, -4)
+
 [sub_resource type="Theme" id="Theme_wdf0f"]
 MarginContainer/constants/margin_bottom = 10
 MarginContainer/constants/margin_left = 10
@@ -440,6 +446,13 @@ mesh = SubResource("CapsuleMesh_bx7cj")
 [node name="BenDeWang\'sCollisionShape3D" type="CollisionShape3D" parent="Head/StaticBody3D" unique_id=1630901762]
 transform = Transform3D(1, -4.37114e-08, -4.37114e-08, 4.37114e-08, -4.371139e-08, 1, -4.37114e-08, -1, -4.3711385e-08, 3.2016278e-08, -0.8000001, -0.9921656)
 shape = SubResource("CapsuleShape3D_bupmj")
+
+[node name="RayCast3D" type="RayCast3D" parent="Head" unique_id=558354537]
+target_position = Vector3(0, 0, -10)
+
+[node name="TheGiver" type="MeshInstance3D" parent="Head/RayCast3D" unique_id=1522224447]
+transform = Transform3D(-4.3711385e-08, -0.99999994, 0, 0.99999994, -4.3711385e-08, 0, 0, 0, 0.99999994, 0, 0, 0)
+mesh = SubResource("PlaneMesh_qaoyu")
 
 [node name="UserInterface" type="Control" parent="." unique_id=1077185649]
 layout_mode = 3

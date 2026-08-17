@@ -33,6 +33,8 @@ This is a bunch of helper functions that I've created for one of my projects.
 ## Mesh Destruction:
 ### `slice_mesh`
 - Slices a mesh into two halves along a plane.  Requires a MeshInstance3D set to a PlaneMesh to define the cut, and a mesh to cut.  An optional material can be provided for the newly created interior surface.<br>It assumes the plane mesh is fully penetrating the target mesh, and does not check for a partial slice.
+### `check_penetration`
+- Check if the slicing plane fully bisects the target, or only partially does.<br>This is only useful if you want to limit any cuts to the area of your slicing mesh.  Otherwise, the slicer just checks the face angle and cuts along the infinate plane.
 
 There is an example scene and script that uses just about every function in the toolset, which you can access by downloading it from the Github repo.
 <br>**Warning**: The demo scene is very intensive, and an extreme edge case way beyond realistic applications.

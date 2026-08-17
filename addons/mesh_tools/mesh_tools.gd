@@ -39,4 +39,6 @@ const MeshEffects = preload("res://addons/mesh_tools/scripts/mesh_effects.gd")
 ## MeshDestruction has the methods:
 ## [br]slice_mesh
 ## [br]    It takes a [param MeshInstance3D] with a [param PlaneMesh] that does the cutting, a recieving [param mesh], and an optional [param StandardMaterial3D].
+## [br]check_penetration
+## [br]    Using the [param MeshInstance3D] plane you intend to slice with, and a [param MeshInstance3D], run a check to see if the slicing plane fully bisects the target, or only partially does.[br]This is useful for weapons or effects that have a limited range or power to slice.  The slicer always cuts on an infinate plane, so this is just a sanity check if you want it.
 const MeshDestruction = preload("res://addons/mesh_tools/scripts/mesh_destruction.gd")

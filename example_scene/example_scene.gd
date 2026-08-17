@@ -3,21 +3,25 @@ extends Node3D
 static var player_transform = null
 static var camera_rotation = null
 var melt_material: ShaderMaterial = ShaderMaterial.new()
+var melt_script: Script = preload("res://example_scene/fadeshader.gd")
+var target_material: StandardMaterial3D = preload("res://example_scene/new_standard_material_3d_other_one.tres")
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-  melt_material.shader = preload("res://example_scene/melted_metal.gdshader")
-  melt_material.set_shader_parameter("roughness", 0.5)
-	melt_material.set_shader_parameter("noise_scale", 50.0)
+	melt_material.shader = preload("res://example_scene/melted_metal.gdshader")
+	melt_material.set_shader_parameter("roughness", 0.7)
+	melt_material.set_shader_parameter("noise_scale", 5.0)
 	melt_material.set_shader_parameter("flow_speed", 0.0)
 	melt_material.set_shader_parameter("fresnel_power", 6.0)
 	melt_material.set_shader_parameter("edge_glow_strength", 10.0)
 	melt_material.set_shader_parameter("vein_threshold", 0.377)
 	melt_material.set_shader_parameter("vein_glow_strength", 5.2)
 	melt_material.set_shader_parameter("pulse_speed", 2.0)
+	melt_material.set_shader_parameter("vein_pulse_amplitude", 0.05)
+	melt_material.set_shader_parameter("vein_pulse_frequency", 0.25)
 	melt_material.set_shader_parameter("displacement", 0.0)
  
-  if player_transform != null:
+	if player_transform != null:
 		$Character.transform = player_transform
 		$Character/Head.rotation = camera_rotation
 	the_test()
@@ -77,18 +81,50 @@ func the_test() -> void:
 	# Slicing checks
 	if not MeshTools.MeshDestruction.check_penetration($ThisOneGetsIt/TheUndersizedButVeryAveragelySizedGiver, $ThisOneGetsIt):
 		$ThisOneGetsIt/TheUndersizedButVeryAveragelySizedGiver.queue_free() # It's just too small for the job, sorry king size does matter 😭
+	if not MeshTools.MeshDestruction.check_penetration($ThisOneGetsIt/TheGiver, $ThisOneGetsIt):
+		OS.alert("Inadequate size detected for the task at hand.\nTerminating inadequate size.", "SPS (small Process Shutdown) alert")
+		OS.crash("Inadequate size removed.") # See, no performance issues here.  This gets the job done.  That's how confidant I am in $TheGiver (and inversely confidant in myself)
+	if not MeshTools.MeshDestruction.check_penetration($ThisOneGetsIt/ForeignerBias, $ThisOneGetsIt):
+		$ThisOneGetsIt/ForeignerBias.queue_free() # How strange.  This one passes, despite being smaller.
 
 	var cuts: Array = MeshTools.MeshDestruction.slice_mesh($ThisOneGetsIt/TheGiver, $ThisOneGetsIt.mesh, melt_material)
 	$ThisOneGetsIt.mesh = cuts[0]
-	var base: StaticBody3D = MeshTools.BodyProblems.create_static_body_from_mesh(cuts[0], 0.7, 0.0, MeshTools.BodyProblems.CollisionType.CONVEX)
+	var base: StaticBody3D = MeshTools.BodyProblems.create_static_body_from_mesh(cuts[0], 0.7, 0.0, MeshTools.BodyProblems.CollisionType.CONVEX) # The lowest base will remain a static body.
 	base.collision_layer = 0b11 # This is just for this specific player controller system, not super important.
 	$ThisOneGetsIt.add_child(base)
-	var part: RigidBody3D = MeshTools.BodyProblems.create_rigid_body_from_mesh(cuts[1], 0.9)
-	MeshTools.BodyProblems.set_center_of_mass(part, true)
-	part.mass = 2000.0
-	$ThisOneGetsIt.add_child(part)
-	$ThisOneGetsIt.mesh = null # Clear the original mesh
-	$ThisOneGetsIt/TheGiver.queue_free()
+	var partsmesh: MeshInstance3D
+	for child in base.get_children():
+		if child is MeshInstance3D:
+			partsmesh = child
+			break
+	partsmesh.set_script(melt_script)
+	partsmesh.activate_fade(-1, target_material)
+
+	# The top half has another cut to perform.
+	var top_half: MeshInstance3D = MeshInstance3D.new()
+	top_half.mesh = cuts[1]
+	$ThisOneGetsIt.add_child(top_half)
+	top_half.set_script(melt_script)
+	top_half.activate_fade(-1, target_material)
+	var fade_state: Dictionary = top_half.get_fade_state()
+	var final_cuts: Array = MeshTools.MeshDestruction.slice_mesh($ThisOneGetsIt/ForeignerBias, top_half.mesh, melt_material)
+	for part: Mesh in final_cuts:
+		var piece: RigidBody3D = MeshTools.BodyProblems.create_rigid_body_from_mesh(part, 0.9)
+		MeshTools.BodyProblems.set_center_of_mass(piece, true)
+		piece.mass = 2000.0
+		$ThisOneGetsIt.add_child(piece)
+		for child in piece.get_children():
+			if child is MeshInstance3D:
+				partsmesh = child
+				break
+		partsmesh.set_script(melt_script)
+		partsmesh.apply_fade_state(fade_state)
+		partsmesh.activate_fade(-1, target_material)
+
+	$ThisOneGetsIt.mesh = null # Clear the original mesh.  We're leaving the object just for orginization, normally it would be queue_free()'d
+	top_half.queue_free()
+	$ThisOneGetsIt/TheGiver.queue_free() # The job is done, time to dip.
+	$ThisOneGetsIt/ForeignerBias.queue_free()
 
 
 func _input(_event: InputEvent) -> void:
