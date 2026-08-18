@@ -31,6 +31,8 @@ class_name SpeechBubble3D extends Node3D
 ## text to display
 @export var text : String = ""
 
+@export var retain_progress : bool = true
+
 ## Add an area3d to detect a player and enable and disable on entering the area
 @export var use_detector : bool = true
 @export var detector_radius : float = 3.0
@@ -101,22 +103,27 @@ func say_text(text:String, life:float = 0.0) -> void:
 	if text.length() < 1:
 		close_bubble()
 		return
-		
+
 	text_extent = label_settings.font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, label_settings.font_size)
 	#text_extent.x *= 1.2
 	if text_extent.x > wrap_size:
 		text_extent.x = wrap_size
 
 	letter_time = text_speed
-	current_letter = 0
+	if not retain_progress:
+		current_letter = 0
 	speech_text = text
-	
+
 	life_time = life
-	if text_speed > 0.0:
+	# Defer the life countdown only while there are still letters to spell out;
+	# it gets armed in _process() when the last letter appears. If the text is
+	# already fully shown (progress retained from a finished bubble) or appears
+	# all at once, start the countdown now — otherwise it would never arm.
+	if text_speed > 0.0 and current_letter < speech_text.length():
 		current_life = 0.0
 	else:
 		current_life = life
-	
+
 	fade_out_time = fade_duration
 	fade_in_time = fade_duration
 #---------------------------------------------------------------------------------------------------
@@ -141,7 +148,7 @@ func _process(delta: float) -> void:
 			if fade_in_time > 0.0:
 				# going to fade in with new text
 				if text_speed > 0.0:
-					speech_label.text = ""
+					speech_label.text = speech_text.left(current_letter)
 				else:
 					speech_label.text = speech_text
 				speech_label.custom_minimum_size = text_extent
@@ -165,15 +172,15 @@ func _process(delta: float) -> void:
 		if letter_time <= 0.0:
 			letter_time = text_speed
 			current_letter += 1
-			
+
 			if current_letter >= speech_text.length():
 				current_life = life_time
 
 			var left_text : String = speech_text.left(current_letter)
 			var last_letter : String = left_text.right(1)
-			
+
 			speech_label.text = left_text
-			
+
 			# pause after punctuation
 			if last_letter == " ":
 				letter_time += 2.0 * text_speed

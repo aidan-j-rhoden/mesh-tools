@@ -48,6 +48,8 @@ bounce = 0.8
 
 [sub_resource type="SphereMesh" id="SphereMesh_2nij2"]
 
+[sub_resource type="SystemFont" id="SystemFont_6r8m4"]
+
 [sub_resource type="BoxMesh" id="BoxMesh_gualv"]
 material = ExtResource("4_jnonn")
 size = Vector3(3, 6, 3)
@@ -73,7 +75,7 @@ transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545
 shadow_enabled = true
 
 [node name="StaticBody3D" type="StaticBody3D" parent="." unique_id=1978154652]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.2, 0.5, -4.1)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.2, 0.3, -4.1)
 collision_layer = 3
 physics_material_override = SubResource("PhysicsMaterial_vqley")
 
@@ -4677,6 +4679,14 @@ shape = SubResource("SphereShape3D_coq8p")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="RigidBody3D" unique_id=1274121480]
 mesh = SubResource("SphereMesh_2nij2")
+
+[node name="SpeechBubble3D2" type="Node3D" parent="RigidBody3D" unique_id=99604367]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.2154064e-08, 0.5152378, -0.00030899048)
+script = ExtResource("7_gualv")
+text_font = SubResource("SystemFont_6r8m4")
+text = "This is used to test the mesh noise function.  The vertex positions are randomized slightly, new normals are generated, and it's turned into a (extremely heavy) rigidbody3d."
+detector_radius = 4.0
+metadata/_custom_type_script = "uid://bkvxk4n03rbj8"
 
 [node name="CSGSphere3D" type="CSGSphere3D" parent="." unique_id=126142576]
 transform = Transform3D(3.705, 0, 0, 0, 1.451, 0, 0, 0, 3.705, 0, 51.50802, 0)
