@@ -4685,7 +4685,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.2154064e-08, 0.5152378, -0.
 script = ExtResource("7_gualv")
 text_font = SubResource("SystemFont_6r8m4")
 text = "This is used to test the mesh noise function.  The vertex positions are randomized slightly, new normals are generated, and it's turned into a (extremely heavy) rigidbody3d."
-detector_radius = 4.0
+detector_radius = 1.65
 metadata/_custom_type_script = "uid://bkvxk4n03rbj8"
 
 [node name="CSGSphere3D" type="CSGSphere3D" parent="." unique_id=126142576]
@@ -4760,5 +4760,27 @@ script = ExtResource("7_gualv")
 wrap_size = 160.0
 text_font = SubResource("SystemFont_gualv")
 text = "This is a static block.  Don't trip"
-detector_radius = 2.0
+detector_radius = 1.0
+metadata/_custom_type_script = "uid://bkvxk4n03rbj8"
+
+[node name="SpeechBubble3D3" type="Node3D" parent="Text" unique_id=471067663]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.4, 1.2, -2.4)
+script = ExtResource("7_gualv")
+wrap_size = 600.0
+text_font = SubResource("SystemFont_gualv")
+text_size = 15
+text = "Quite a lot is going on here, and this is a massive complex mess of CSG nodes.
+Every single cube is built out of CSG nodes, 7 for the blue ones, and 2 for the white ones, for a total of 675 separate csg nodes.
+First, a condensing operation is performed on the whole stack.  They are all baked into one giant mesh, and placed in one csg node.  This operation is helpful when you are continually editing with CSG, and operations pile up, slowing down the compute."
+metadata/_custom_type_script = "uid://bkvxk4n03rbj8"
+
+[node name="SpeechBubble3D2" type="Node3D" parent="Text" unique_id=2014379606]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.799999, 5.8000016, 5.4999995)
+script = ExtResource("7_gualv")
+wrap_size = 160.0
+fade_duration = 0.08
+text_font = SubResource("SystemFont_gualv")
+text = "Wow how'd you get up here"
+retain_progress = false
+detector_radius = 1.4
 metadata/_custom_type_script = "uid://bkvxk4n03rbj8"

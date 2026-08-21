@@ -8,7 +8,12 @@ func _ready() -> void:
 
 
 func set_radius(radius: float):
-	$Area3D/CollisionShape3D.shape.radius = radius
+	var col := $Area3D/CollisionShape3D
+	if col.shape:
+		col.shape = col.shape.duplicate()   # each bubble now owns its own copy
+		print("this ran")
+		if col.shape is SphereShape3D:
+			col.shape.radius = radius
 
 
 func _on_area_3d_body_entered(body: Node3D) -> void:

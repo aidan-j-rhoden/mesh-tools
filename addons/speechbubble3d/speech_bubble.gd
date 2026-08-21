@@ -29,13 +29,18 @@ class_name SpeechBubble3D extends Node3D
 			label_settings.font_size = s
 
 ## text to display
-@export var text : String = ""
+@export_multiline var text : String = ""
 
 @export var retain_progress : bool = true
 
 ## Add an area3d to detect a player and enable and disable on entering the area
 @export var use_detector : bool = true
-@export var detector_radius : float = 3.0
+
+@export var detector_radius : float = 3.0:
+	set(value):
+		detector_radius = value
+		if player_detector:
+			player_detector.set_radius(detector_radius)
 
 ## Layer number of bubble.
 ## Larger layer displayed in front of lower.
@@ -74,14 +79,14 @@ func _ready() -> void:
 		player_detector = detector.instantiate()
 		add_child(player_detector)
 		player_detector.set_radius(detector_radius)
-	
+
 	speech_label = get_node("CanvasLayer/CanvasModulate/ResizeContainer/EncloseContainer/TextMargin/Text")
 	bubble_pic_left = get_node("CanvasLayer/CanvasModulate/ResizeContainer/EncloseContainer/BubblePicLeft")
 	bubble_pic_right = get_node("CanvasLayer/CanvasModulate/ResizeContainer/EncloseContainer/BubblePicRight")
 	speech_container = get_node("CanvasLayer/CanvasModulate/ResizeContainer")
 	transparency_node = get_node("CanvasLayer/CanvasModulate")
 	margin_node = get_node("CanvasLayer/CanvasModulate/ResizeContainer/EncloseContainer/TextMargin")
-	
+
 	bubble_pic_left.texture = preload("res://addons/speechbubble3d/speech_bubble.png")
 	bubble_pic_right.texture = preload("res://addons/speechbubble3d/speech_bubble_r.png")
 	
@@ -104,17 +109,23 @@ func say_text(text:String, life:float = 0.0) -> void:
 		close_bubble()
 		return
 
-	text_extent = label_settings.font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, label_settings.font_size)
-	#text_extent.x *= 1.2
-	if text_extent.x > wrap_size:
-		text_extent.x = wrap_size
+	# Correct size that respects both \n and word-wrapping
+	text_extent = label_settings.font.get_multiline_string_size(
+		text,
+		HORIZONTAL_ALIGNMENT_LEFT,
+		wrap_size,                       # max width
+		label_settings.font_size
+		# optional extra args if you want exact match to the Label’s flags:
+		# -1,                             # max_lines
+		# TextServer.BREAK_MANDATORY | TextServer.BREAK_WORD_BOUND
+	)
 
 	letter_time = text_speed
 	if not retain_progress:
 		current_letter = 0
 	speech_text = text
-
 	life_time = life
+
 	# Defer the life countdown only while there are still letters to spell out;
 	# it gets armed in _process() when the last letter appears. If the text is
 	# already fully shown (progress retained from a finished bubble) or appears
@@ -191,7 +202,7 @@ func _process(delta: float) -> void:
 
 	elif not visiblity_node.visible:
 		return
-	
+
 	if current_life > 0.0:
 		current_life -= delta
 		if current_life <= 0.0:
